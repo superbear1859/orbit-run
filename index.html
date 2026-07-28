@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Orbit Run: Shadow Void - Circular Platformer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-Bkd5D1hl.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DhwQEVWa.css">
+  <script type="module" crossorigin src="./assets/index-Dmc8d1MJ.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-pS8gkwxi.css">
 </head>
 <body>
   <div id="app">
@@ -75,12 +75,25 @@
 
       <!-- Quick Controls Badge & Sound Toggle -->
       <div id="topControls">
+        <button id="deviceSelectBtn" class="icon-btn" title="Device Mode (Mobile/PC)">📱</button>
         <button id="charRosterBtn" class="icon-btn" title="Character Shop (C)">🛒</button>
         <button id="soundBtn" class="icon-btn" title="Toggle Mute (M)">🔊</button>
         <button id="pauseBtn" class="icon-btn" title="Pause Game (P)">⏸️</button>
       </div>
 
-      <!-- Control Instructions Footer Bar -->
+      <!-- Mobile Touch Controls Overlay (Left/Right Arrows + Jump & Ability Buttons) -->
+      <div id="touchControls" class="touch-controls-container hidden">
+        <div class="touch-left-group">
+          <button id="btnTouchLeft" class="touch-btn dpad-btn" title="Move Left">◀</button>
+          <button id="btnTouchRight" class="touch-btn dpad-btn" title="Move Right">▶</button>
+        </div>
+        <div class="touch-right-group">
+          <button id="btnTouchAbility" class="touch-btn action-btn ability-btn" title="Special Ability">⚡ ABILITY</button>
+          <button id="btnTouchJump" class="touch-btn action-btn jump-btn" title="Jump">🦘 JUMP</button>
+        </div>
+      </div>
+
+      <!-- Control Instructions Footer Bar (Desktop Keyboard) -->
       <div id="controlsHint">
         <span><kbd>A</kbd> / <kbd>D</kbd> Move</span>
         <span><kbd>SPACE</kbd> Jump</span>
@@ -89,8 +102,29 @@
       </div>
 
       <!-- Overlay Screens -->
+      <!-- 0. Device Prompt Overlay (Shown First!) -->
+      <div id="deviceOverlay" class="overlay active">
+        <div class="overlay-card device-card">
+          <h1 class="game-title">ORBIT RUN<span class="title-sub">SHADOW VOID</span></h1>
+          <p class="game-tagline">Select your device to set up control buttons:</p>
+
+          <div class="device-options">
+            <button id="selectDesktopBtn" class="device-choice-btn">
+              <span class="device-icon">💻</span>
+              <span class="device-title">DESKTOP / KEYBOARD</span>
+              <span class="device-desc">Use A/D keys to run & Space to jump</span>
+            </button>
+            <button id="selectMobileBtn" class="device-choice-btn accent">
+              <span class="device-icon">📱</span>
+              <span class="device-title">MOBILE / TOUCH</span>
+              <span class="device-desc">On-screen arrow keys & touch buttons</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- 1. Start Screen -->
-      <div id="startOverlay" class="overlay active">
+      <div id="startOverlay" class="overlay hidden">
         <div class="overlay-card">
           <h1 class="game-title">ORBIT RUN<span class="title-sub">SHADOW VOID</span></h1>
           <p class="game-tagline">Outrun the pursuing Shadow Void around the circular planet!</p>
@@ -158,7 +192,7 @@
           </div>
 
           <div id="characterGrid" class="character-grid">
-            <!-- Dynamically populated 8 character cards -->
+            <!-- Dynamically populated 16 character cards -->
           </div>
 
           <button id="closeRosterBtn" class="btn-primary">CLOSE SHOP</button>
