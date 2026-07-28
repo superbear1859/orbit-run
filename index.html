@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbit Run: Shadow Void - Circular Platformer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Main Game Canvas Container -->
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas" width="900" height="900"></canvas>
+
+      <!-- Mid-Run Unlock Notification Toast -->
+      <div id="unlockToast" class="unlock-toast hidden">
+        <div class="toast-title">🎉 AVAILABLE IN SHOP!</div>
+        <div id="toastCharName" class="toast-char-name">VOLT DASH</div>
+        <div id="toastCharAbility" class="toast-ability">Ability: Sonic Arc Dash [SHIFT]</div>
+      </div>
+
+      <!-- HUD Top Bar -->
+      <div id="hud">
+        <!-- Top Left Group: Timer & Void Distance Indicator Box -->
+        <div class="hud-left-group">
+          <div class="hud-card timer-card">
+            <div class="hud-label">SURVIVAL TIME</div>
+            <div id="timerDisplay" class="hud-value">00:00.00</div>
+          </div>
+
+          <div id="distanceBox" class="hud-card distance-card">
+            <div class="hud-label">VOID DISTANCE</div>
+            <div class="distance-value-row">
+              <span id="distanceMeters" class="hud-value">180.0</span>
+              <span class="hud-unit">m</span>
+              <span id="distanceDegrees" class="distance-deg">(180°)</span>
+            </div>
+            <div class="radar-bar-container">
+              <div id="radarBar" class="radar-bar-fill" style="width: 100%;"></div>
+            </div>
+            <div id="proximityAlert" class="proximity-alert hidden">CRITICAL WARNING</div>
+          </div>
+        </div>
+
+        <!-- Top Right Group: Lap & Active Character Ability Badge -->
+        <div class="hud-right-group">
+          <!-- Active Ability Badge -->
+          <div id="abilityBadge" class="hud-card ability-card">
+            <div class="hud-label" id="abilityLabel">ABILITY: DOUBLE JUMP</div>
+            <div class="ability-status-row">
+              <span id="charNameBadge" class="hud-value-sm">CYAN RUNNER</span>
+              <div id="dashCooldownBar" class="cooldown-bar hidden">
+                <div id="dashFill" class="cooldown-fill"></div>
+              </div>
+              <span id="shieldCountBadge" class="shield-badge hidden">🛡️ 1 SHIELD</span>
+            </div>
+          </div>
+
+          <div class="hud-card lap-card">
+            <div class="hud-label" id="lapName">LAP 1 - Skyblock Orbit</div>
+            <div class="lap-score-row">
+              <span class="hud-label-sm">LAP</span>
+              <span id="lapDisplay" class="hud-value-accent">1</span>
+              <span class="score-divider">|</span>
+              <span class="hud-label-sm">CRYSTALS</span>
+              <span id="crystalDisplay" class="hud-value-accent">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Controls Badge & Sound Toggle -->
+      <div id="topControls">
+        <button id="charRosterBtn" class="icon-btn" title="Character Shop (C)">🛒</button>
+        <button id="soundBtn" class="icon-btn" title="Toggle Mute (M)">🔊</button>
+        <button id="pauseBtn" class="icon-btn" title="Pause Game (P)">⏸️</button>
+      </div>
+
+      <!-- Control Instructions Footer Bar -->
+      <div id="controlsHint">
+        <span><kbd>A</kbd> / <kbd>D</kbd> Move</span>
+        <span><kbd>SPACE</kbd> Jump</span>
+        <span id="abilityKeyHint"><kbd>SHIFT</kbd> Ability</span>
+        <span><kbd>R</kbd> Retry</span>
+      </div>
+
+      <!-- Overlay Screens -->
+      <!-- 1. Start Screen -->
+      <div id="startOverlay" class="overlay active">
+        <div class="overlay-card">
+          <h1 class="game-title">ORBIT RUN<span class="title-sub">SHADOW VOID</span></h1>
+          <p class="game-tagline">Outrun the pursuing Shadow Void around the circular planet!</p>
+
+          <div class="active-char-preview">
+            <span class="preview-label">EQUIPPED RUNNER:</span>
+            <span id="activeCharName" class="preview-value">CYAN RUNNER</span>
+            <span id="activeCharAbility" class="preview-ability">Double Jump</span>
+          </div>
+
+          <div class="btn-group-row">
+            <button id="startBtn" class="btn-primary">START RUN</button>
+            <button id="openRosterBtn" class="btn-secondary">🛒 CHARACTER SHOP</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Game Over Screen -->
+      <div id="gameOverOverlay" class="overlay hidden">
+        <div class="overlay-card death-card">
+          <h2 class="death-title">ENGULFED BY VOID</h2>
+          <p id="deathReason" class="death-reason">The shadow wall caught up to you.</p>
+
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-label">SURVIVAL TIME</span>
+              <span id="finalTime" class="stat-value">00:42.15</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">THIS RUN DISTANCE</span>
+              <span id="finalDistance" class="stat-value">185.0 m</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">LAPS COMPLETED</span>
+              <span id="finalLap" class="stat-value">2</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">CRYSTALS COLLECTED</span>
+              <span id="finalCrystals" class="stat-value">14</span>
+            </div>
+          </div>
+
+          <div class="btn-group-row">
+            <button id="retryBtn" class="btn-primary">RETRY (Press R)</button>
+            <button id="deathRosterBtn" class="btn-secondary">🛒 CHARACTER SHOP</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Character Selection Roster & Shop Modal -->
+      <div id="charModalOverlay" class="overlay hidden">
+        <div class="overlay-card roster-card">
+          <h2>CHARACTER SHOP</h2>
+          <p class="roster-subtitle">Run the required distance to unlock shop access, then buy with Crystals!</p>
+
+          <div class="shop-header-banner">
+            <div class="banner-item">
+              <span>SAVED CRYSTALS:</span>
+              <span id="crystalBankDisplay" class="crystal-bank-val">💎 0</span>
+            </div>
+            <div class="banner-item">
+              <span>MAX DISTANCE RECORD:</span>
+              <span id="maxDistanceDisplay" class="max-dist-val">0.0 m</span>
+            </div>
+          </div>
+
+          <div id="characterGrid" class="character-grid">
+            <!-- Dynamically populated 8 character cards -->
+          </div>
+
+          <button id="closeRosterBtn" class="btn-primary">CLOSE SHOP</button>
+        </div>
+      </div>
+
+      <!-- 4. Pause Screen -->
+      <div id="pauseOverlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h2>GAME PAUSED</h2>
+          <p>Take a breath!</p>
+          <button id="resumeBtn" class="btn-primary">RESUME</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="./src/game.js"></script>
+</body>
+</html>
