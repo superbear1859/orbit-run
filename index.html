@@ -80,16 +80,17 @@
         <button id="pauseBtn" class="icon-btn" title="Pause Game (P)">⏸️</button>
       </div>
 
-      <!-- Mobile Touch Controls Overlay (Left/Right Arrows UNDER Jump & Ability Buttons) -->
+      <!-- Mobile Touch Controls Overlay (Ability on Bottom-Left, Jump & Arrows on Bottom-Right) -->
       <div id="touchControls" class="touch-controls-container hidden">
-        <div class="touch-control-stack">
-          <!-- Top Row: Action Buttons (Ability & Jump) -->
-          <div class="touch-top-row">
-            <button id="btnTouchAbility" class="touch-btn action-btn ability-btn" title="Special Ability">⚡ ABILITY</button>
-            <button id="btnTouchJump" class="touch-btn action-btn jump-btn" title="Jump">🦘 JUMP</button>
-          </div>
-          <!-- Bottom Row (Under Jump): Left and Right Arrow D-Pad Keys -->
-          <div class="touch-bottom-row">
+        <!-- Bottom-Left: Ability Button -->
+        <div class="touch-left-group">
+          <button id="btnTouchAbility" class="touch-btn action-btn ability-btn" title="Special Ability">⚡ ABILITY</button>
+        </div>
+
+        <!-- Bottom-Right: Jump Button on top, Left/Right Arrows underneath -->
+        <div class="touch-right-stack">
+          <button id="btnTouchJump" class="touch-btn action-btn jump-btn" title="Jump">🦘 JUMP</button>
+          <div class="touch-dpad-row">
             <button id="btnTouchLeft" class="touch-btn dpad-btn" title="Move Left">◀</button>
             <button id="btnTouchRight" class="touch-btn dpad-btn" title="Move Right">▶</button>
           </div>
