@@ -38,6 +38,7 @@ class GameEngine {
     this.selectedChar = CHARACTERS.find(c => c.id === this.selectedCharId) || CHARACTERS[0];
     this.crystalBank = loadCrystalBank();
     this.maxDistanceMeters = loadMaxDistanceMeters();
+    this.isMobileMode = localStorage.getItem('orbit_run_device') === 'mobile';
 
     // Characters whose distance requirement has been met in any run
     this.availableShopCharIds = this.loadAvailableShopCharacters();
@@ -120,6 +121,16 @@ class GameEngine {
       soundBtn: document.getElementById('soundBtn'),
       pauseBtn: document.getElementById('pauseBtn'),
       charRosterBtn: document.getElementById('charRosterBtn'),
+      deviceSelectBtn: document.getElementById('deviceSelectBtn'),
+      touchControls: document.getElementById('touchControls'),
+      btnTouchLeft: document.getElementById('btnTouchLeft'),
+      btnTouchRight: document.getElementById('btnTouchRight'),
+      btnTouchJump: document.getElementById('btnTouchJump'),
+      btnTouchAbility: document.getElementById('btnTouchAbility'),
+      controlsHint: document.getElementById('controlsHint'),
+      deviceOverlay: document.getElementById('deviceOverlay'),
+      selectDesktopBtn: document.getElementById('selectDesktopBtn'),
+      selectMobileBtn: document.getElementById('selectMobileBtn'),
       startOverlay: document.getElementById('startOverlay'),
       gameOverOverlay: document.getElementById('gameOverOverlay'),
       pauseOverlay: document.getElementById('pauseOverlay'),
@@ -152,9 +163,35 @@ class GameEngine {
     };
 
     this.initEventListeners();
+    this.initTouchControls();
     this.updateActiveCharacterDisplay();
+
+    // Check if device choice was saved, or prompt first
+    const savedDevice = localStorage.getItem('orbit_run_device');
+    if (savedDevice) {
+      this.setDeviceMode(savedDevice === 'mobile', false);
+    }
+
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
+  }
+
+  setDeviceMode(isMobile, promptStartOverlay = true) {
+    this.isMobileMode = isMobile;
+    localStorage.setItem('orbit_run_device', isMobile ? 'mobile' : 'desktop');
+
+    if (isMobile) {
+      this.dom.touchControls.classList.remove('hidden');
+      this.dom.controlsHint.classList.add('hidden');
+    } else {
+      this.dom.touchControls.classList.add('hidden');
+      this.dom.controlsHint.classList.remove('hidden');
+    }
+
+    this.dom.deviceOverlay.classList.add('hidden');
+    if (promptStartOverlay && this.state === 'START') {
+      this.dom.startOverlay.classList.remove('hidden');
+    }
   }
 
   loadAvailableShopCharacters() {
@@ -197,6 +234,46 @@ class GameEngine {
     return offscreen;
   }
 
+  initTouchControls() {
+    const bindBtn = (element, onPress, onRelease) => {
+      const start = (e) => {
+        e.preventDefault();
+        element.classList.add('active');
+        onPress();
+      };
+      const end = (e) => {
+        e.preventDefault();
+        element.classList.remove('active');
+        if (onRelease) onRelease();
+      };
+
+      element.addEventListener('pointerdown', start);
+      element.addEventListener('pointerup', end);
+      element.addEventListener('pointercancel', end);
+      element.addEventListener('pointerleave', end);
+
+      element.addEventListener('touchstart', start, { passive: false });
+      element.addEventListener('touchend', end, { passive: false });
+    };
+
+    bindBtn(this.dom.btnTouchLeft, () => { this.keys.left = true; }, () => { this.keys.left = false; });
+    bindBtn(this.dom.btnTouchRight, () => { this.keys.right = true; }, () => { this.keys.right = false; });
+
+    bindBtn(this.dom.btnTouchJump, () => {
+      this.player.jumpBufferTimer = JUMP_BUFFER_MAX;
+      this.keys.jump = true;
+    }, () => {
+      this.keys.jump = false;
+      if (this.player.radialVel > 0 && !this.selectedChar.stats.hasFloat) {
+        this.player.radialVel *= 0.5;
+      }
+    });
+
+    bindBtn(this.dom.btnTouchAbility, () => {
+      this.handleAbilityPress();
+    });
+  }
+
   initEventListeners() {
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyA' || e.code === 'ArrowLeft') this.keys.left = true;
@@ -233,6 +310,12 @@ class GameEngine {
           this.player.radialVel *= 0.5;
         }
       }
+    });
+
+    this.dom.selectDesktopBtn.addEventListener('click', () => this.setDeviceMode(false));
+    this.dom.selectMobileBtn.addEventListener('click', () => this.setDeviceMode(true));
+    this.dom.deviceSelectBtn.addEventListener('click', () => {
+      this.dom.deviceOverlay.classList.remove('hidden');
     });
 
     this.dom.startBtn.addEventListener('click', () => this.startGame());
@@ -411,10 +494,9 @@ class GameEngine {
     if (this.selectedChar.stats.hasSolarBlast && this.solarCooldownTimerMs <= 0) {
       this.solarCooldownTimerMs = this.selectedChar.stats.solarCooldownMs;
 
-      // ULTRA-POWERED PUSHBACK VALUES
-      let pushDegrees = 60; // Solar Plasma pushes Void back 60°
+      let pushDegrees = 60;
       if (this.selectedChar.id === "void_slayer") {
-        pushDegrees = 180; // Void Slayer pushes Void back a COLOSSAL 180° (HALF THE PLANET!)
+        pushDegrees = 180;
       }
 
       const pushRad = (pushDegrees * Math.PI) / 180;

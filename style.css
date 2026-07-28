@@ -16,6 +16,8 @@
   margin: 0;
   padding: 0;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
 }
 
 body {
@@ -332,6 +334,83 @@ canvas {
   transform: scale(1.08);
 }
 
+/* Mobile Touch Controls Overlay */
+.touch-controls-container {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 80;
+}
+
+.touch-left-group, .touch-right-group {
+  display: flex;
+  gap: 14px;
+  pointer-events: auto;
+}
+
+.touch-btn {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--neon-cyan);
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  border-radius: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.3);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: transform 0.05s ease, background 0.05s ease, box-shadow 0.05s ease;
+}
+
+.dpad-btn {
+  width: 70px;
+  height: 70px;
+  font-size: 1.8rem;
+  color: var(--neon-cyan);
+}
+
+.action-btn {
+  height: 70px;
+  padding: 0 20px;
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+.jump-btn {
+  border-color: var(--neon-cyan);
+  background: rgba(56, 189, 248, 0.25);
+  color: #fff;
+}
+
+.ability-btn {
+  border-color: var(--neon-amber);
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--neon-amber);
+}
+
+.touch-btn:active, .touch-btn.active {
+  transform: scale(0.92);
+  background: var(--neon-cyan);
+  color: #04101e;
+  box-shadow: 0 0 30px var(--neon-cyan);
+}
+
+.ability-btn:active, .ability-btn.active {
+  background: var(--neon-amber);
+  color: #04101e;
+  box-shadow: 0 0 30px var(--neon-amber);
+}
+
 #controlsHint {
   position: absolute;
   bottom: 16px;
@@ -363,7 +442,7 @@ kbd {
 .overlay {
   position: absolute;
   inset: 0;
-  background: rgba(7, 9, 19, 0.85);
+  background: rgba(7, 9, 19, 0.88);
   backdrop-filter: blur(14px);
   display: flex;
   justify-content: center;
@@ -379,7 +458,7 @@ kbd {
 }
 
 .overlay-card {
-  background: rgba(15, 23, 42, 0.92);
+  background: rgba(15, 23, 42, 0.94);
   border: 1px solid rgba(56, 189, 248, 0.3);
   border-radius: 24px;
   padding: 32px;
@@ -390,6 +469,65 @@ kbd {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Device Selection Modal */
+.device-card {
+  border-color: rgba(192, 132, 252, 0.5);
+  box-shadow: 0 0 60px rgba(192, 132, 252, 0.3);
+}
+
+.device-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.device-choice-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.device-choice-btn.accent {
+  border-color: var(--neon-cyan);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.device-choice-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 25px rgba(192, 132, 252, 0.4);
+}
+
+.device-choice-btn.accent:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+}
+
+.device-icon {
+  font-size: 2.2rem;
+}
+
+.device-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.device-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .active-char-preview {
