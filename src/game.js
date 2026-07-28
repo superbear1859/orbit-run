@@ -274,8 +274,45 @@ class GameEngine {
     });
   }
 
+  activateUnlockAllCheat() {
+    this.purchasedCharIds = CHARACTERS.map(c => c.id);
+    this.availableShopCharIds = CHARACTERS.map(c => c.id);
+    this.crystalBank = 9999;
+    this.maxDistanceMeters = Math.max(this.maxDistanceMeters, 500);
+
+    savePurchasedCharacters(this.purchasedCharIds);
+    this.saveAvailableShopCharacters();
+    saveCrystalBank(this.crystalBank);
+    saveMaxDistanceMeters(this.maxDistanceMeters);
+
+    sounds.playLapComplete();
+
+    this.dom.toastCharName.textContent = "👑 CHEAT UNLOCKED!";
+    this.dom.toastCharName.style.color = "#facc15";
+    this.dom.toastCharAbility.textContent = "ALL 16 CHARACTERS UNLOCKED + 9999 💎!";
+    this.dom.unlockToast.classList.remove('hidden');
+    this.toastTimerMs = 5000;
+
+    this.renderCharacterGrid();
+  }
+
   initEventListeners() {
+    let cheatBuffer = "";
+    const CHEAT_CODE = "superbear1859yyyyy";
+
     window.addEventListener('keydown', (e) => {
+      if (e.key && e.key.length === 1) {
+        cheatBuffer += e.key.toLowerCase();
+        if (cheatBuffer.length > CHEAT_CODE.length) {
+          cheatBuffer = cheatBuffer.slice(-CHEAT_CODE.length);
+        }
+
+        if (cheatBuffer === CHEAT_CODE) {
+          cheatBuffer = "";
+          this.activateUnlockAllCheat();
+        }
+      }
+
       if (e.code === 'KeyA' || e.code === 'ArrowLeft') this.keys.left = true;
       if (e.code === 'KeyD' || e.code === 'ArrowRight') this.keys.right = true;
       if (e.code === 'Space' || e.code === 'KeyW' || e.code === 'ArrowUp') {
