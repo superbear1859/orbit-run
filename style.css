@@ -645,6 +645,25 @@ kbd {
   background: rgba(56, 189, 248, 0.15);
 }
 
+.btn-secondary.danger {
+  border-color: rgba(244, 63, 94, 0.4);
+  color: var(--neon-rose);
+}
+
+.btn-secondary.danger:hover {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: var(--neon-rose);
+  box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+}
+
+.shop-footer-row {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
 /* Character Shop Modal */
 .roster-card {
   width: 740px;

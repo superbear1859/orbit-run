@@ -141,6 +141,7 @@ class GameEngine {
       openRosterBtn: document.getElementById('openRosterBtn'),
       deathRosterBtn: document.getElementById('deathRosterBtn'),
       closeRosterBtn: document.getElementById('closeRosterBtn'),
+      resetCharsBtn: document.getElementById('resetCharsBtn'),
       characterGrid: document.getElementById('characterGrid'),
       deathReason: document.getElementById('deathReason'),
       finalTime: document.getElementById('finalTime'),
@@ -295,6 +296,32 @@ class GameEngine {
     this.renderCharacterGrid();
   }
 
+  resetCharacters() {
+    if (confirm("Are you sure you want to lock all characters except Cyan Runner?")) {
+      this.purchasedCharIds = ["cyan_runner"];
+      this.availableShopCharIds = ["cyan_runner"];
+      this.selectedCharId = "cyan_runner";
+      this.selectedChar = CHARACTERS[0];
+      this.maxDistanceMeters = 0;
+
+      savePurchasedCharacters(this.purchasedCharIds);
+      this.saveAvailableShopCharacters();
+      saveSelectedCharacter(this.selectedCharId);
+      saveMaxDistanceMeters(0);
+
+      sounds.playSpikeHit();
+
+      this.updateActiveCharacterDisplay();
+      this.renderCharacterGrid();
+
+      this.dom.toastCharName.textContent = "🔄 CHARACTERS RESET";
+      this.dom.toastCharName.style.color = "#f43f5e";
+      this.dom.toastCharAbility.textContent = "All characters locked except Cyan Runner!";
+      this.dom.unlockToast.classList.remove('hidden');
+      this.toastTimerMs = 4000;
+    }
+  }
+
   initEventListeners() {
     let cheatBuffer = "";
     const CHEAT_CODE = "superbear1859yyyyy";
@@ -363,6 +390,7 @@ class GameEngine {
     this.dom.openRosterBtn.addEventListener('click', () => this.toggleRosterModal());
     this.dom.deathRosterBtn.addEventListener('click', () => this.toggleRosterModal());
     this.dom.closeRosterBtn.addEventListener('click', () => this.toggleRosterModal());
+    this.dom.resetCharsBtn.addEventListener('click', () => this.resetCharacters());
   }
 
   toggleMute() {
@@ -419,6 +447,7 @@ class GameEngine {
   renderCharacterGrid() {
     this.dom.characterGrid.innerHTML = "";
     this.dom.crystalBankDisplay.textContent = `💎 ${this.crystalBank}`;
+    this.dom.maxDistanceDisplay.textContent = `${this.maxDistanceMeters.toFixed(1)} m`;
 
     CHARACTERS.forEach(char => {
       const isPurchased = this.purchasedCharIds.includes(char.id);
