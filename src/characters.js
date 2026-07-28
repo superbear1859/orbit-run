@@ -1,4 +1,4 @@
-// Character Roster & Special Ability Definitions (16 Playable Characters with Super Easy Distance Unlocks!)
+// Character Roster & Special Ability Definitions (17 Playable Characters with Super Easy Distance Unlocks!)
 
 export const CHARACTERS = [
   {
@@ -95,6 +95,32 @@ export const CHARACTERS = [
       hasShield: true,
       shieldMaxPerLap: 1,
       hasSolarBlast: false,
+      hasMagnet: false,
+      hasPhase: false
+    }
+  },
+  {
+    id: "aegis_blaster",
+    name: "AEGIS BLASTER",
+    title: "Shielded Void Pulse",
+    color: "#06b6d4",
+    trailColor: "#22d3ee",
+    abilityName: "Shield & Void Blast [SHIFT / E]",
+    abilityDesc: "Absorbs 1 spike hit per lap + Active Void Blast pushes the Shadow Void back 60°! (5s Cooldown)",
+    unlockedByDefault: false,
+    unlockDistanceMeters: 20,
+    crystalCost: 20,
+    unlockCriteria: "Reach 20m in a run",
+    stats: {
+      speedMult: 1.05,
+      jumpMult: 1.05,
+      maxJumps: 2,
+      hasDash: false,
+      hasFloat: false,
+      hasShield: true,
+      shieldMaxPerLap: 1,
+      hasSolarBlast: true,
+      solarCooldownMs: 5000,
       hasMagnet: false,
       hasPhase: false
     }

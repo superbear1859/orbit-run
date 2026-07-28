@@ -297,7 +297,7 @@ class GameEngine {
 
     this.dom.toastCharName.textContent = "👑 CHEAT UNLOCKED!";
     this.dom.toastCharName.style.color = "#facc15";
-    this.dom.toastCharAbility.textContent = "ALL 16 CHARACTERS UNLOCKED + 9999 💎!";
+    this.dom.toastCharAbility.textContent = "ALL 17 CHARACTERS UNLOCKED + 9999 💎!";
     this.dom.unlockToast.classList.remove('hidden');
     this.toastTimerMs = 5000;
 
@@ -441,16 +441,16 @@ class GameEngine {
 
     if (this.selectedChar.stats.hasDash || this.selectedChar.stats.hasSolarBlast || this.selectedChar.stats.hasPhase) {
       this.dom.dashCooldownBar.classList.remove('hidden');
-      this.dom.shieldCountBadge.classList.add('hidden');
       this.dom.abilityKeyHint.classList.remove('hidden');
-    } else if (this.selectedChar.stats.hasShield) {
-      this.dom.dashCooldownBar.classList.add('hidden');
-      this.dom.shieldCountBadge.classList.remove('hidden');
-      this.dom.abilityKeyHint.classList.add('hidden');
     } else {
       this.dom.dashCooldownBar.classList.add('hidden');
-      this.dom.shieldCountBadge.classList.add('hidden');
       this.dom.abilityKeyHint.classList.add('hidden');
+    }
+
+    if (this.selectedChar.stats.hasShield) {
+      this.dom.shieldCountBadge.classList.remove('hidden');
+    } else {
+      this.dom.shieldCountBadge.classList.add('hidden');
     }
   }
 
