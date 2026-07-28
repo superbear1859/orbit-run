@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-BAMrcrgw.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-C4-xoaPl.css">
+  <script type="module" crossorigin src="./assets/index-BvC-aQRu.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-EI3Ayaxh.css">
 </head>
 <body>
   <div id="app">
@@ -81,15 +81,19 @@
         <button id="pauseBtn" class="icon-btn" title="Pause Game (P)">⏸️</button>
       </div>
 
-      <!-- Mobile Touch Controls Overlay (Left/Right Arrows + Jump & Ability Buttons) -->
+      <!-- Mobile Touch Controls Overlay (Left/Right Arrows UNDER Jump & Ability Buttons) -->
       <div id="touchControls" class="touch-controls-container hidden">
-        <div class="touch-left-group">
-          <button id="btnTouchLeft" class="touch-btn dpad-btn" title="Move Left">◀</button>
-          <button id="btnTouchRight" class="touch-btn dpad-btn" title="Move Right">▶</button>
-        </div>
-        <div class="touch-right-group">
-          <button id="btnTouchAbility" class="touch-btn action-btn ability-btn" title="Special Ability">⚡ ABILITY</button>
-          <button id="btnTouchJump" class="touch-btn action-btn jump-btn" title="Jump">🦘 JUMP</button>
+        <div class="touch-control-stack">
+          <!-- Top Row: Action Buttons (Ability & Jump) -->
+          <div class="touch-top-row">
+            <button id="btnTouchAbility" class="touch-btn action-btn ability-btn" title="Special Ability">⚡ ABILITY</button>
+            <button id="btnTouchJump" class="touch-btn action-btn jump-btn" title="Jump">🦘 JUMP</button>
+          </div>
+          <!-- Bottom Row (Under Jump): Left and Right Arrow D-Pad Keys -->
+          <div class="touch-bottom-row">
+            <button id="btnTouchLeft" class="touch-btn dpad-btn" title="Move Left">◀</button>
+            <button id="btnTouchRight" class="touch-btn dpad-btn" title="Move Right">▶</button>
+          </div>
         </div>
       </div>
 
