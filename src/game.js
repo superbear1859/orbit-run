@@ -57,6 +57,9 @@ class GameEngine {
     // Countdown Interval Reference
     this.countdownInterval = null;
 
+    // Delta Time / High Refresh Rate Normalization
+    this.lastTimestamp = 0;
+
     // State Variables
     this.state = 'START';
     this.currentLapIndex = 0;
@@ -854,59 +857,60 @@ class GameEngine {
     }
   }
 
-  update(dt) {
+  update(dtFactor = 1.0) {
     if (this.state !== 'RUNNING') return;
 
     this.elapsedTime = performance.now() - this.startTime;
+    const deltaMs = 16.667 * dtFactor;
 
     if (this.toastTimerMs > 0) {
-      this.toastTimerMs -= 16;
+      this.toastTimerMs = Math.max(0, this.toastTimerMs - deltaMs);
       if (this.toastTimerMs <= 0) {
         this.dom.unlockToast.classList.add('hidden');
       }
     }
 
     if (this.dashCooldownTimerMs > 0) {
-      this.dashCooldownTimerMs = Math.max(0, this.dashCooldownTimerMs - 16);
+      this.dashCooldownTimerMs = Math.max(0, this.dashCooldownTimerMs - deltaMs);
     }
     if (this.solarCooldownTimerMs > 0) {
-      this.solarCooldownTimerMs = Math.max(0, this.solarCooldownTimerMs - 16);
+      this.solarCooldownTimerMs = Math.max(0, this.solarCooldownTimerMs - deltaMs);
     }
     if (this.phaseCooldownTimerMs > 0) {
-      this.phaseCooldownTimerMs = Math.max(0, this.phaseCooldownTimerMs - 16);
+      this.phaseCooldownTimerMs = Math.max(0, this.phaseCooldownTimerMs - deltaMs);
     }
     if (this.phaseActiveTimerMs > 0) {
-      this.phaseActiveTimerMs = Math.max(0, this.phaseActiveTimerMs - 16);
+      this.phaseActiveTimerMs = Math.max(0, this.phaseActiveTimerMs - deltaMs);
     }
     if (this.shieldInvulnerableTimerMs > 0) {
-      this.shieldInvulnerableTimerMs = Math.max(0, this.shieldInvulnerableTimerMs - 16);
+      this.shieldInvulnerableTimerMs = Math.max(0, this.shieldInvulnerableTimerMs - deltaMs);
     }
 
     const maxSpeed = MAX_RUN_SPEED_BASE * this.selectedChar.stats.speedMult;
     const accel = RUN_ACCEL_BASE * this.selectedChar.stats.speedMult;
 
-    // 1. Angular Movement
+    // 1. Angular Movement (Delta-time normalized)
     if (this.keys.right) {
-      this.player.angularVel += accel;
+      this.player.angularVel += accel * dtFactor;
       this.player.facing = 1;
     }
     if (this.keys.left) {
-      this.player.angularVel -= accel;
+      this.player.angularVel -= accel * dtFactor;
       this.player.facing = -1;
     }
 
     if (!this.player.isDashing) {
       this.player.angularVel = Math.max(-maxSpeed, Math.min(maxSpeed, this.player.angularVel));
-      this.player.angularVel *= FRICTION;
+      this.player.angularVel *= Math.pow(FRICTION, dtFactor);
     } else {
-      this.player.dashTimerMs -= 16;
+      this.player.dashTimerMs -= deltaMs;
       if (this.player.dashTimerMs <= 0) {
         this.player.isDashing = false;
       }
     }
 
     const prevAngle = this.player.angle;
-    this.player.angle += this.player.angularVel;
+    this.player.angle += this.player.angularVel * dtFactor;
 
     const arcDeltaRad = Math.abs(this.player.angle - prevAngle);
     const distDeltaMeters = (arcDeltaRad * PLANET_RADIUS) / 10;
@@ -932,15 +936,15 @@ class GameEngine {
       this.executeJump();
     }
 
-    // 2. Radial Physics
+    // 2. Radial Physics (Delta-time normalized)
     let effectiveGravity = GRAVITY;
     if (this.selectedChar.stats.hasFloat && !this.player.isGrounded && this.keys.jump && this.player.radialVel < 0) {
       effectiveGravity = GRAVITY * 0.35;
       this.spawnFloatParticles();
     }
 
-    this.player.radialVel -= effectiveGravity;
-    this.player.radius += this.player.radialVel;
+    this.player.radialVel -= effectiveGravity * dtFactor;
+    this.player.radius += this.player.radialVel * dtFactor;
 
     const playerDeg = this.getNormalizedDegrees(this.player.angle);
     let landedOnPlatform = false;
@@ -997,9 +1001,9 @@ class GameEngine {
       if (this.player.trail.length > 10) this.player.trail.shift();
     }
 
-    // 3. Update Void Movement
+    // 3. Update Void Movement (Delta-time normalized)
     const currentVoidSpeed = this.void.speed + (this.currentLapIndex * 0.0005);
-    this.void.angle += currentVoidSpeed;
+    this.void.angle += currentVoidSpeed * dtFactor;
 
     let angleDiffRad = this.player.angle - this.void.angle;
     while (angleDiffRad < 0) angleDiffRad += Math.PI * 2;
@@ -1023,16 +1027,16 @@ class GameEngine {
     this.checkSpikeCollisions(playerDeg);
     this.checkCrystalCollisions(playerDeg);
 
-    // 5. Fast Array Particle Filter
+    // 5. Fast Array Particle Filter (Delta-time normalized)
     this.particles = this.particles.filter(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life -= p.decay;
+      p.x += p.vx * dtFactor;
+      p.y += p.vy * dtFactor;
+      p.life -= p.decay * dtFactor;
       return p.life > 0;
     });
 
     this.player.trail = this.player.trail.filter(t => {
-      t.life -= 0.1;
+      t.life -= 0.1 * dtFactor;
       return t.life > 0;
     });
 
@@ -1518,7 +1522,15 @@ class GameEngine {
   }
 
   loop(timestamp) {
-    this.update(timestamp);
+    if (!this.lastTimestamp) this.lastTimestamp = timestamp;
+    const deltaMs = timestamp - this.lastTimestamp;
+    this.lastTimestamp = timestamp;
+
+    // Cap delta to prevent huge jumps when unfocusing tabs
+    const cappedDelta = Math.min(deltaMs, 100);
+    const dtFactor = cappedDelta / 16.667;
+
+    this.update(dtFactor);
     this.render();
     requestAnimationFrame(this.loop);
   }
