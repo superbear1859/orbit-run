@@ -54,6 +54,9 @@ class GameEngine {
     // Toast Notification
     this.toastTimerMs = 0;
 
+    // Countdown Interval Reference
+    this.countdownInterval = null;
+
     // State Variables
     this.state = 'START';
     this.currentLapIndex = 0;
@@ -135,6 +138,8 @@ class GameEngine {
       gameOverOverlay: document.getElementById('gameOverOverlay'),
       pauseOverlay: document.getElementById('pauseOverlay'),
       charModalOverlay: document.getElementById('charModalOverlay'),
+      countdownOverlay: document.getElementById('countdownOverlay'),
+      countdownNumber: document.getElementById('countdownNumber'),
       startBtn: document.getElementById('startBtn'),
       retryBtn: document.getElementById('retryBtn'),
       resumeBtn: document.getElementById('resumeBtn'),
@@ -355,7 +360,7 @@ class GameEngine {
       }
       if (e.code === 'KeyR') {
         if (this.state === 'GAMEOVER' || this.state === 'RUNNING') {
-          this.restartGame();
+          this.startCountdown();
         }
       }
       if (e.code === 'KeyP') {
@@ -383,8 +388,8 @@ class GameEngine {
       this.dom.deviceOverlay.classList.remove('hidden');
     });
 
-    this.dom.startBtn.addEventListener('click', () => this.startGame());
-    this.dom.retryBtn.addEventListener('click', () => this.restartGame());
+    this.dom.startBtn.addEventListener('click', () => this.startCountdown());
+    this.dom.retryBtn.addEventListener('click', () => this.startCountdown());
     this.dom.resumeBtn.addEventListener('click', () => this.togglePause());
     this.dom.soundBtn.addEventListener('click', () => this.toggleMute());
     this.dom.pauseBtn.addEventListener('click', () => this.togglePause());
@@ -635,28 +640,62 @@ class GameEngine {
     }
   }
 
-  startGame() {
+  startCountdown() {
     sounds.init();
+    if (this.countdownInterval) clearInterval(this.countdownInterval);
+
     this.resetState();
-    this.state = 'RUNNING';
-    this.startTime = performance.now();
+    this.state = 'COUNTDOWN';
+
     this.dom.deviceOverlay.classList.add('hidden');
     this.dom.startOverlay.classList.add('hidden');
     this.dom.gameOverOverlay.classList.add('hidden');
     this.dom.charModalOverlay.classList.add('hidden');
     this.dom.pauseOverlay.classList.add('hidden');
+
+    this.dom.countdownOverlay.classList.remove('hidden');
+
+    let count = 3;
+    this.updateCountdownDisplay(count);
+
+    this.countdownInterval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        this.updateCountdownDisplay(count);
+      } else if (count === 0) {
+        this.updateCountdownDisplay("GO!");
+      } else {
+        clearInterval(this.countdownInterval);
+        this.countdownInterval = null;
+        this.dom.countdownOverlay.classList.add('hidden');
+        this.state = 'RUNNING';
+        this.startTime = performance.now();
+      }
+    }, 750);
+  }
+
+  updateCountdownDisplay(val) {
+    const el = this.dom.countdownNumber;
+    el.textContent = val;
+    el.className = `countdown-num ${val === "GO!" ? 'go' : ''}`;
+
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = null;
+
+    if (typeof val === 'number') {
+      sounds.playJump();
+    } else {
+      sounds.playLapComplete();
+    }
+  }
+
+  startGame() {
+    this.startCountdown();
   }
 
   restartGame() {
-    sounds.init();
-    this.resetState();
-    this.state = 'RUNNING';
-    this.startTime = performance.now();
-    this.dom.deviceOverlay.classList.add('hidden');
-    this.dom.startOverlay.classList.add('hidden');
-    this.dom.gameOverOverlay.classList.add('hidden');
-    this.dom.pauseOverlay.classList.add('hidden');
-    this.dom.charModalOverlay.classList.add('hidden');
+    this.startCountdown();
   }
 
   resetState() {
