@@ -166,17 +166,20 @@ class GameEngine {
     this.initTouchControls();
     this.updateActiveCharacterDisplay();
 
-    // Check if device choice was saved, or prompt first
+    // Check if device choice was saved
     const savedDevice = localStorage.getItem('orbit_run_device');
     if (savedDevice) {
-      this.setDeviceMode(savedDevice === 'mobile', false);
+      this.setDeviceMode(savedDevice === 'mobile', true);
+    } else {
+      this.dom.deviceOverlay.classList.remove('hidden');
+      this.dom.startOverlay.classList.add('hidden');
     }
 
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
   }
 
-  setDeviceMode(isMobile, promptStartOverlay = true) {
+  setDeviceMode(isMobile, showStartOverlay = true) {
     this.isMobileMode = isMobile;
     localStorage.setItem('orbit_run_device', isMobile ? 'mobile' : 'desktop');
 
@@ -189,7 +192,8 @@ class GameEngine {
     }
 
     this.dom.deviceOverlay.classList.add('hidden');
-    if (promptStartOverlay && this.state === 'START') {
+
+    if (showStartOverlay && this.state === 'START') {
       this.dom.startOverlay.classList.remove('hidden');
     }
   }
@@ -349,8 +353,8 @@ class GameEngine {
       }
     });
 
-    this.dom.selectDesktopBtn.addEventListener('click', () => this.setDeviceMode(false));
-    this.dom.selectMobileBtn.addEventListener('click', () => this.setDeviceMode(true));
+    this.dom.selectDesktopBtn.addEventListener('click', () => this.setDeviceMode(false, true));
+    this.dom.selectMobileBtn.addEventListener('click', () => this.setDeviceMode(true, true));
     this.dom.deviceSelectBtn.addEventListener('click', () => {
       this.dom.deviceOverlay.classList.remove('hidden');
     });
@@ -610,9 +614,11 @@ class GameEngine {
     this.resetState();
     this.state = 'RUNNING';
     this.startTime = performance.now();
+    this.dom.deviceOverlay.classList.add('hidden');
     this.dom.startOverlay.classList.add('hidden');
     this.dom.gameOverOverlay.classList.add('hidden');
     this.dom.charModalOverlay.classList.add('hidden');
+    this.dom.pauseOverlay.classList.add('hidden');
   }
 
   restartGame() {
@@ -620,6 +626,8 @@ class GameEngine {
     this.resetState();
     this.state = 'RUNNING';
     this.startTime = performance.now();
+    this.dom.deviceOverlay.classList.add('hidden');
+    this.dom.startOverlay.classList.add('hidden');
     this.dom.gameOverOverlay.classList.add('hidden');
     this.dom.pauseOverlay.classList.add('hidden');
     this.dom.charModalOverlay.classList.add('hidden');
