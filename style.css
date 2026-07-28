@@ -452,6 +452,14 @@ kbd {
   transition: opacity 0.3s ease;
 }
 
+#deviceOverlay {
+  z-index: 200 !important;
+}
+
+#startOverlay {
+  z-index: 100 !important;
+}
+
 .overlay.hidden {
   opacity: 0;
   pointer-events: none;
