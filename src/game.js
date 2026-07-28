@@ -38,7 +38,7 @@ class GameEngine {
     this.selectedChar = CHARACTERS.find(c => c.id === this.selectedCharId) || CHARACTERS[0];
     this.crystalBank = loadCrystalBank();
     this.maxDistanceMeters = loadMaxDistanceMeters();
-    this.isMobileMode = localStorage.getItem('orbit_run_device') === 'mobile';
+    this.isMobileMode = false;
 
     // Characters whose distance requirement has been met in any run
     this.availableShopCharIds = this.loadAvailableShopCharacters();
@@ -166,14 +166,9 @@ class GameEngine {
     this.initTouchControls();
     this.updateActiveCharacterDisplay();
 
-    // Check if device choice was saved
-    const savedDevice = localStorage.getItem('orbit_run_device');
-    if (savedDevice) {
-      this.setDeviceMode(savedDevice === 'mobile', true);
-    } else {
-      this.dom.deviceOverlay.classList.remove('hidden');
-      this.dom.startOverlay.classList.add('hidden');
-    }
+    // ALWAYS show device selection prompt on initial load!
+    this.dom.deviceOverlay.classList.remove('hidden');
+    this.dom.startOverlay.classList.add('hidden');
 
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
