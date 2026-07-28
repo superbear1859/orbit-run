@@ -297,16 +297,18 @@ class GameEngine {
   }
 
   resetCharacters() {
-    if (confirm("Are you sure you want to lock all characters except Cyan Runner?")) {
+    if (confirm("Are you sure you want to lock all characters except Cyan Runner and reset your gems to 0?")) {
       this.purchasedCharIds = ["cyan_runner"];
       this.availableShopCharIds = ["cyan_runner"];
       this.selectedCharId = "cyan_runner";
       this.selectedChar = CHARACTERS[0];
+      this.crystalBank = 0;
       this.maxDistanceMeters = 0;
 
       savePurchasedCharacters(this.purchasedCharIds);
       this.saveAvailableShopCharacters();
       saveSelectedCharacter(this.selectedCharId);
+      saveCrystalBank(0);
       saveMaxDistanceMeters(0);
 
       sounds.playSpikeHit();
@@ -314,9 +316,9 @@ class GameEngine {
       this.updateActiveCharacterDisplay();
       this.renderCharacterGrid();
 
-      this.dom.toastCharName.textContent = "🔄 CHARACTERS RESET";
+      this.dom.toastCharName.textContent = "🔄 CHARACTERS & GEMS RESET";
       this.dom.toastCharName.style.color = "#f43f5e";
-      this.dom.toastCharAbility.textContent = "All characters locked except Cyan Runner!";
+      this.dom.toastCharAbility.textContent = "All characters locked & gems reset to 0!";
       this.dom.unlockToast.classList.remove('hidden');
       this.toastTimerMs = 4000;
     }
