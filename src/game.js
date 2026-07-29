@@ -579,6 +579,19 @@ class GameEngine {
 
       sounds.playSpikeHit();
       this.spawnSolarFlareParticles(pushDegrees);
+
+      // Blast also destroys nearby enemies!
+      const playerDeg = this.getNormalizedDegrees(this.player.angle);
+      if (this.currentLapData.enemies) {
+        for (const enemy of this.currentLapData.enemies) {
+          if (enemy.destroyed) continue;
+          const eAngle = enemy.type === 'shadow_drone' ? enemy.currentAngle : enemy.angle;
+          const angleDiff = Math.abs(playerDeg - eAngle);
+          if (angleDiff < pushDegrees / 2 + 10) {
+            this.destroyEnemy(enemy, "BLASTED!");
+          }
+        }
+      }
     }
 
     if (this.selectedChar.stats.hasPhase && this.phaseCooldownTimerMs <= 0) {
@@ -588,6 +601,23 @@ class GameEngine {
       sounds.playDoubleJump();
       this.spawnPhaseParticles();
     }
+  }
+
+  destroyEnemy(enemy, textLabel = "DESTROYED!") {
+    enemy.destroyed = true;
+
+    const eAngle = enemy.type === 'shadow_drone' ? enemy.currentAngle : enemy.angle;
+    const eRad = (eAngle * Math.PI / 180) - Math.PI / 2;
+    const r = PLANET_RADIUS + enemy.radiusOffset;
+    const ex = CENTER_X + Math.cos(eRad) * r;
+    const ey = VIEW_CENTER_Y + Math.sin(eRad) * r;
+
+    this.spawnEnemyExplosionParticles(ex, ey, enemy.type);
+    sounds.playSpikeHit();
+
+    this.crystalsCollected += 5;
+    this.crystalBank += 5;
+    saveCrystalBank(this.crystalBank);
   }
 
   spawnDashParticles() {
@@ -639,6 +669,24 @@ class GameEngine {
         color: '#a855f7',
         life: 1,
         decay: 0.04
+      });
+    }
+  }
+
+  spawnEnemyExplosionParticles(x, y, enemyType) {
+    const mainColor = enemyType === 'shadow_drone' ? '#c084fc' : '#f43f5e';
+    for (let i = 0; i < 25; i++) {
+      const angle = (Math.PI * 2 * i) / 25;
+      const speed = Math.random() * 5 + 2;
+      this.particles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: Math.random() * 4 + 2,
+        color: Math.random() > 0.5 ? mainColor : '#fbbf24',
+        life: 1,
+        decay: 0.035
       });
     }
   }
@@ -1023,11 +1071,29 @@ class GameEngine {
       this.void.angle = this.player.angle - (Math.PI * 0.5);
     }
 
-    // 4. Collision Detection
+    // 4. Update Enemy Movements
+    if (this.currentLapData.enemies) {
+      for (const enemy of this.currentLapData.enemies) {
+        if (enemy.destroyed) continue;
+        if (enemy.type === 'shadow_drone') {
+          enemy.currentAngle += enemy.speed * enemy.dir * dtFactor;
+          if (enemy.currentAngle >= enemy.maxAngle) {
+            enemy.currentAngle = enemy.maxAngle;
+            enemy.dir = -1;
+          } else if (enemy.currentAngle <= enemy.minAngle) {
+            enemy.currentAngle = enemy.minAngle;
+            enemy.dir = 1;
+          }
+        }
+      }
+    }
+
+    // 5. Collision Detection
     this.checkSpikeCollisions(playerDeg);
+    this.checkEnemyCollisions(playerDeg);
     this.checkCrystalCollisions(playerDeg);
 
-    // 5. Fast Array Particle Filter (Delta-time normalized)
+    // 6. Fast Array Particle Filter (Delta-time normalized)
     this.particles = this.particles.filter(p => {
       p.x += p.vx * dtFactor;
       p.y += p.vy * dtFactor;
@@ -1040,8 +1106,46 @@ class GameEngine {
       return t.life > 0;
     });
 
-    // 6. Update HUD
+    // 7. Update HUD
     this.updateHUD(angleDiffDeg, distanceMeters);
+  }
+
+  checkEnemyCollisions(playerDeg) {
+    if (!this.currentLapData.enemies) return;
+
+    const pRadius = this.player.radius;
+
+    for (const enemy of this.currentLapData.enemies) {
+      if (enemy.destroyed) continue;
+
+      const eAngle = enemy.type === 'shadow_drone' ? enemy.currentAngle : enemy.angle;
+      const eRadius = PLANET_RADIUS + enemy.radiusOffset;
+
+      const angleDiff = Math.abs(playerDeg - eAngle);
+
+      if (angleDiff < 5.5 && Math.abs(pRadius - eRadius) < 26) {
+        if (this.player.isDashing) {
+          // Dash destroys enemy!
+          this.destroyEnemy(enemy, "DASH SMASH!");
+          continue;
+        }
+
+        if (this.phaseActiveTimerMs > 0 || this.shieldInvulnerableTimerMs > 0) return;
+
+        if (this.shieldCharges > 0) {
+          this.shieldCharges--;
+          this.shieldInvulnerableTimerMs = 1500;
+          this.player.radialVel = JUMP_IMPULSE_BASE * 1.1;
+          sounds.playDoubleJump();
+          this.spawnShieldAbsorbParticles();
+        } else {
+          sounds.playSpikeHit();
+          const msg = enemy.type === 'shadow_drone' ? "Destroyed by a Void Drone!" : "Collided with a Plasma Mine!";
+          this.triggerGameOver(msg);
+          return;
+        }
+      }
+    }
   }
 
   spawnFloatParticles() {
@@ -1139,6 +1243,9 @@ class GameEngine {
     this.currentLapData = getLapData(this.currentLapIndex);
     if (this.currentLapData.crystals) {
       this.currentLapData.crystals.forEach(c => c.collected = false);
+    }
+    if (this.currentLapData.enemies) {
+      this.currentLapData.enemies.forEach(e => e.destroyed = false);
     }
     if (this.selectedChar.stats.hasShield) {
       this.shieldCharges = this.selectedChar.stats.shieldMaxPerLap || 1;
@@ -1245,16 +1352,19 @@ class GameEngine {
     // 5. Render Spikes & Hazards
     this.renderSpikes();
 
-    // 6. Render Collectible Crystals
+    // 6. Render Enemies
+    this.renderEnemies();
+
+    // 7. Render Collectible Crystals
     this.renderCrystals();
 
-    // 7. Render Shadow Void
+    // 8. Render Shadow Void
     this.renderShadowVoid();
 
-    // 8. Render Particles & Trails
+    // 9. Render Particles & Trails
     this.renderParticles();
 
-    // 9. Render Player Character
+    // 10. Render Player Character
     this.renderPlayer();
 
     this.ctx.restore();
@@ -1371,6 +1481,84 @@ class GameEngine {
 
     this.ctx.fill();
     this.ctx.shadowBlur = 0;
+  }
+
+  renderEnemies() {
+    if (!this.currentLapData.enemies) return;
+
+    const time = performance.now() * 0.005;
+
+    for (const enemy of this.currentLapData.enemies) {
+      if (enemy.destroyed) continue;
+
+      const eAngleDeg = enemy.type === 'shadow_drone' ? enemy.currentAngle : enemy.angle;
+      const eRad = (eAngleDeg * Math.PI / 180) - Math.PI / 2;
+      const r = PLANET_RADIUS + enemy.radiusOffset;
+      const x = CENTER_X + Math.cos(eRad) * r;
+      const y = VIEW_CENTER_Y + Math.sin(eRad) * r;
+
+      this.ctx.save();
+      this.ctx.translate(x, y);
+      this.ctx.rotate(eRad + Math.PI / 2);
+
+      if (enemy.type === 'shadow_drone') {
+        // Render Shadow Drone Patrol
+        this.ctx.fillStyle = '#a855f7';
+        this.ctx.shadowColor = '#c084fc';
+        this.ctx.shadowBlur = 15;
+
+        // Drone Body (Futuristic Shield Shape)
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, -12);
+        this.ctx.lineTo(14, 4);
+        this.ctx.lineTo(8, 12);
+        this.ctx.lineTo(-8, 12);
+        this.ctx.lineTo(-14, 4);
+        this.ctx.closePath();
+        this.ctx.fill();
+
+        // Glowing Visor Eye
+        this.ctx.fillStyle = '#f43f5e';
+        this.ctx.shadowColor = '#f43f5e';
+        this.ctx.shadowBlur = 10;
+        this.ctx.fillRect(-6, -4, 12, 4);
+
+        // Pulsing Thruster Core
+        const thrusterPulse = Math.abs(Math.sin(time * 3)) * 4 + 4;
+        this.ctx.fillStyle = '#fbbf24';
+        this.ctx.beginPath();
+        this.ctx.arc(0, 10, thrusterPulse / 2, 0, Math.PI * 2);
+        this.ctx.fill();
+      } else if (enemy.type === 'plasma_mine') {
+        // Render Plasma Mine
+        const pulse = Math.sin(time * 4) * 2;
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.shadowColor = '#f43f5e';
+        this.ctx.shadowBlur = 20;
+
+        // Core Orb
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, 11 + pulse, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Energy Spikes (Rotates smoothly)
+        this.ctx.strokeStyle = '#facc15';
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const spikeAngle = (Math.PI * 2 * i / 6) + time;
+          const sx1 = Math.cos(spikeAngle) * 9;
+          const sy1 = Math.sin(spikeAngle) * 9;
+          const sx2 = Math.cos(spikeAngle) * (18 + pulse);
+          const sy2 = Math.sin(spikeAngle) * (18 + pulse);
+          this.ctx.moveTo(sx1, sy1);
+          this.ctx.lineTo(sx2, sy2);
+        }
+        this.ctx.stroke();
+      }
+
+      this.ctx.restore();
+    }
   }
 
   renderCrystals() {

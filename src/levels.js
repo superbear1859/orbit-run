@@ -35,6 +35,11 @@ export const LAPS = [
       { angle: 140, radiusOffset: 135 },
       { angle: 235, radiusOffset: 145 },
       { angle: 295, radiusOffset: 115 }
+    ],
+    enemies: [
+      { id: 'drone_1_1', type: 'shadow_drone', minAngle: 40, maxAngle: 75, currentAngle: 40, radiusOffset: 95, speed: 0.2, dir: 1 },
+      { id: 'drone_1_2', type: 'shadow_drone', minAngle: 170, maxAngle: 200, currentAngle: 170, radiusOffset: 85, speed: 0.25, dir: 1 },
+      { id: 'mine_1_1', type: 'plasma_mine', angle: 260, radiusOffset: 165 }
     ]
   },
 
@@ -71,6 +76,12 @@ export const LAPS = [
       { angle: 139, radiusOffset: 150 },
       { angle: 165, radiusOffset: 200 },
       { angle: 275, radiusOffset: 155 }
+    ],
+    enemies: [
+      { id: 'drone_2_1', type: 'shadow_drone', minAngle: 30, maxAngle: 60, currentAngle: 30, radiusOffset: 125, speed: 0.22, dir: 1 },
+      { id: 'drone_2_2', type: 'shadow_drone', minAngle: 110, maxAngle: 140, currentAngle: 110, radiusOffset: 75, speed: 0.28, dir: 1 },
+      { id: 'mine_2_1', type: 'plasma_mine', angle: 165, radiusOffset: 185 },
+      { id: 'drone_2_3', type: 'shadow_drone', minAngle: 220, maxAngle: 250, currentAngle: 220, radiusOffset: 90, speed: 0.25, dir: 1 }
     ]
   },
 
@@ -106,6 +117,13 @@ export const LAPS = [
       { angle: 55, radiusOffset: 220 },
       { angle: 147, radiusOffset: 230 },
       { angle: 249, radiusOffset: 230 }
+    ],
+    enemies: [
+      { id: 'drone_3_1', type: 'shadow_drone', minAngle: 30, maxAngle: 55, currentAngle: 30, radiusOffset: 150, speed: 0.3, dir: 1 },
+      { id: 'mine_3_1', type: 'plasma_mine', angle: 125, radiusOffset: 155 },
+      { id: 'drone_3_2', type: 'shadow_drone', minAngle: 170, maxAngle: 195, currentAngle: 170, radiusOffset: 140, speed: 0.32, dir: 1 },
+      { id: 'mine_3_2', type: 'plasma_mine', angle: 245, radiusOffset: 210 },
+      { id: 'drone_3_3', type: 'shadow_drone', minAngle: 295, maxAngle: 320, currentAngle: 295, radiusOffset: 90, speed: 0.28, dir: 1 }
     ]
   },
 
@@ -146,6 +164,13 @@ export const LAPS = [
       { angle: 128, radiusOffset: 245 },
       { angle: 208, radiusOffset: 240 },
       { angle: 288, radiusOffset: 245 }
+    ],
+    enemies: [
+      { id: 'drone_4_1', type: 'shadow_drone', minAngle: 25, maxAngle: 50, currentAngle: 25, radiusOffset: 155, speed: 0.35, dir: 1 },
+      { id: 'mine_4_1', type: 'plasma_mine', angle: 105, radiusOffset: 165 },
+      { id: 'drone_4_2', type: 'shadow_drone', minAngle: 145, maxAngle: 170, currentAngle: 145, radiusOffset: 160, speed: 0.35, dir: 1 },
+      { id: 'mine_4_2', type: 'plasma_mine', angle: 225, radiusOffset: 160 },
+      { id: 'drone_4_3', type: 'shadow_drone', minAngle: 265, maxAngle: 290, currentAngle: 265, radiusOffset: 165, speed: 0.35, dir: 1 }
     ]
   },
 
@@ -188,17 +213,26 @@ export const LAPS = [
       { angle: 114, radiusOffset: 260 },
       { angle: 186, radiusOffset: 255 },
       { angle: 258, radiusOffset: 260 }
+    ],
+    enemies: [
+      { id: 'drone_5_1', type: 'shadow_drone', minAngle: 20, maxAngle: 45, currentAngle: 20, radiusOffset: 175, speed: 0.4, dir: 1 },
+      { id: 'mine_5_1', type: 'plasma_mine', angle: 95, radiusOffset: 180 },
+      { id: 'drone_5_2', type: 'shadow_drone', minAngle: 130, maxAngle: 155, currentAngle: 130, radiusOffset: 180, speed: 0.4, dir: 1 },
+      { id: 'mine_5_2', type: 'plasma_mine', angle: 200, radiusOffset: 175 },
+      { id: 'drone_5_3', type: 'shadow_drone', minAngle: 240, maxAngle: 265, currentAngle: 240, radiusOffset: 180, speed: 0.4, dir: 1 },
+      { id: 'mine_5_3', type: 'plasma_mine', angle: 310, radiusOffset: 175 }
     ]
   }
 ];
 
 export function getLapData(lapIndex) {
   if (lapIndex < LAPS.length) {
-    return LAPS[lapIndex];
+    return JSON.parse(JSON.stringify(LAPS[lapIndex]));
   }
   const base = LAPS[LAPS.length - 1];
+  const copy = JSON.parse(JSON.stringify(base));
   return {
-    ...base,
+    ...copy,
     lapNumber: lapIndex + 1,
     name: `Spike Trial Lap ${lapIndex + 1}`,
     bgHue: (base.bgHue + (lapIndex - 4) * 40) % 360
