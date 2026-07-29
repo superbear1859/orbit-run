@@ -248,7 +248,6 @@ class GameEngine {
     localStorage.setItem('orbit_run_enable_enemies', this.enableEnemies ? 'true' : 'false');
     this.updateToggleUI();
 
-    // Update current lap enemies live!
     if (!this.enableEnemies && this.currentLapData) {
       this.currentLapData.enemies = [];
     }
@@ -259,7 +258,6 @@ class GameEngine {
     localStorage.setItem('orbit_run_enable_powerups', this.enablePowerUps ? 'true' : 'false');
     this.updateToggleUI();
 
-    // Update current lap powerups live!
     if (!this.enablePowerUps && this.currentLapData) {
       this.currentLapData.powerUps = [];
     }
@@ -1387,7 +1385,20 @@ class GameEngine {
     if (this.selectedChar.stats.hasShield) {
       this.shieldCharges = this.selectedChar.stats.shieldMaxPerLap || 1;
     }
+
+    // Award +10 Gems Every Lap Completed!
+    this.crystalsCollected += 10;
+    this.crystalBank += 10;
+    saveCrystalBank(this.crystalBank);
+
     sounds.playLapComplete();
+
+    // Show mid-run Lap Bonus Toast (+10 💎)
+    this.dom.toastCharName.textContent = `+10 💎 LAP ${this.currentLapIndex} BONUS!`;
+    this.dom.toastCharName.style.color = "#fbbf24";
+    this.dom.toastCharAbility.textContent = `Total Gems Saved: 💎 ${this.crystalBank}`;
+    this.dom.unlockToast.classList.remove('hidden');
+    this.toastTimerMs = 3000;
   }
 
   triggerGameOver(reason) {
