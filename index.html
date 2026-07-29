@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 
-  <script type="module" crossorigin src="./assets/index-COcvtuJK.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Cc65H-j-.css">
+  <script type="module" crossorigin src="./assets/index-32mRV5ci.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-D358H9t4.css">
 </head>
 <body>
   <div id="app">
@@ -76,7 +76,7 @@
       <div id="topControls">
         <button id="guideBookBtn" class="icon-btn guide-highlight" title="Guide Book (G)">📖 GUIDE</button>
         <button id="settingsBtn" class="icon-btn" title="Game Settings & Toggles">⚙️ SETTINGS</button>
-        <button id="deviceSelectBtn" class="icon-btn" title="Device Mode (Mobile/PC)">📱</button>
+        <button id="deviceSelectBtn" class="icon-btn" title="Toggle Mobile/PC Controls">📱 CONTROLS</button>
         <button id="charRosterBtn" class="icon-btn" title="Character Shop (C)">🛒</button>
         <button id="soundBtn" class="icon-btn" title="Toggle Mute (M)">🔊</button>
         <button id="pauseBtn" class="icon-btn" title="Pause Game (P)">⏸️</button>
@@ -117,29 +117,8 @@
       </div>
 
       <!-- Overlay Screens -->
-      <!-- 0. Device Prompt Overlay (Shown First!) -->
-      <div id="deviceOverlay" class="overlay active">
-        <div class="overlay-card device-card">
-          <h1 class="game-title">ORBIT RUN<span class="title-sub">SHADOW VOID</span></h1>
-          <p class="game-tagline">Select your device to set up control buttons:</p>
-
-          <div class="device-options">
-            <button id="selectDesktopBtn" class="device-choice-btn">
-              <span class="device-icon">💻</span>
-              <span class="device-title">DESKTOP / KEYBOARD</span>
-              <span class="device-desc">Use D / Right Arrow to run & Space / W / Up Arrow to jump</span>
-            </button>
-            <button id="selectMobileBtn" class="device-choice-btn accent">
-              <span class="device-icon">📱</span>
-              <span class="device-title">MOBILE / TOUCH</span>
-              <span class="device-desc">On-screen Run ▶ button & Touch Jump</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 1. Start Screen -->
-      <div id="startOverlay" class="overlay hidden">
+      <!-- 1. Main Start Screen (Visible First!) -->
+      <div id="startOverlay" class="overlay">
         <div class="overlay-card">
           <h1 class="game-title">ORBIT RUN<span class="title-sub">SHADOW VOID</span></h1>
           <p class="game-tagline">Outrun the pursuing Shadow Void around the circular planet!</p>
@@ -153,6 +132,10 @@
           <!-- Quick Game Toggles Section -->
           <div class="quick-toggles-box">
             <div class="toggle-row">
+              <span class="toggle-label">🎮 CONTROL MODE:</span>
+              <button id="startToggleDevice" class="toggle-switch-btn active">💻 DESKTOP</button>
+            </div>
+            <div class="toggle-row">
               <span class="toggle-label">👾 ENEMIES & MINES:</span>
               <button id="startToggleEnemies" class="toggle-switch-btn active">ENABLED</button>
             </div>
@@ -163,7 +146,9 @@
           </div>
 
           <div class="btn-group-row">
-            <button id="startBtn" class="btn-primary">START RUN</button>
+            <button id="startBtn" class="btn-primary start-btn-giant">🚀 START RUN (SPACE)</button>
+          </div>
+          <div class="btn-group-row" style="margin-top: 10px;">
             <button id="openRosterBtn" class="btn-secondary">🛒 CHARACTER SHOP</button>
             <button id="startGuideBtn" class="btn-secondary accent-guide">📖 GUIDE BOOK</button>
           </div>
