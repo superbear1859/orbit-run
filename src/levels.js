@@ -228,28 +228,31 @@ export const LAPS = [
 export function generateRandomPowerUps(lapData) {
   if (!lapData.platforms || lapData.platforms.length === 0) return [];
 
+  // 40% Chance per lap to spawn ANY power-up at all (Makes them rare!)
+  if (Math.random() > 0.40) {
+    return [];
+  }
+
   const types = ['hyper_speed', 'star_invincible', 'super_magnet'];
   const powerUps = [];
-  const numPowerUps = Math.floor(Math.random() * 2) + 2; // 2 or 3 randomized power-ups
 
+  // Max 1 rare power-up per lap when triggered!
   const availablePlats = [...lapData.platforms];
-  for (let i = 0; i < numPowerUps && availablePlats.length > 0; i++) {
-    const randomIndex = Math.floor(Math.random() * availablePlats.length);
-    const plat = availablePlats.splice(randomIndex, 1)[0];
+  const randomIndex = Math.floor(Math.random() * availablePlats.length);
+  const plat = availablePlats[randomIndex];
 
-    const span = Math.max(2, plat.endAngle - plat.startAngle - 4);
-    const randomAngle = plat.startAngle + 2 + Math.random() * span;
-    const randomType = types[Math.floor(Math.random() * types.length)];
+  const span = Math.max(2, plat.endAngle - plat.startAngle - 4);
+  const randomAngle = plat.startAngle + 2 + Math.random() * span;
+  const randomType = types[Math.floor(Math.random() * types.length)];
 
-    powerUps.push({
-      id: `p_rand_${Date.now()}_${i}_${Math.random()}`,
-      type: randomType,
-      angle: Math.round(randomAngle),
-      radiusOffset: plat.radiusOffset + 35,
-      durationMs: 6000,
-      collected: false
-    });
-  }
+  powerUps.push({
+    id: `p_rand_${Date.now()}_${Math.random()}`,
+    type: randomType,
+    angle: Math.round(randomAngle),
+    radiusOffset: plat.radiusOffset + 35,
+    durationMs: 6000,
+    collected: false
+  });
 
   return powerUps;
 }
@@ -271,7 +274,7 @@ export function getLapData(lapIndex) {
     };
   }
 
-  // Generate dynamic randomized 6-second power-ups every lap!
+  // Generate rare randomized 6-second power-ups
   lapData.powerUps = generateRandomPowerUps(lapData);
   return lapData;
 }
