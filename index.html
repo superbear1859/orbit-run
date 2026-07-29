@@ -2,82 +2,70 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Orbit Run: Shadow Void - Circular Platformer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbit Run: Shadow Void</title>
+
+  <!-- Google Fonts for Modern Premium Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-BuAPIE4a.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+  <script type="module" crossorigin src="./assets/index-rZD1dkMx.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-Cc65H-j-.css">
 </head>
 <body>
   <div id="app">
-    <!-- Main Game Canvas Container -->
-    <div class="canvas-wrapper">
+    <!-- Main Game Container -->
+    <div id="gameContainer">
+
+      <!-- Canvas for 60FPS Render Pipeline -->
       <canvas id="gameCanvas" width="900" height="900"></canvas>
 
-      <!-- Mid-Run Unlock Notification Toast -->
-      <div id="unlockToast" class="unlock-toast hidden">
-        <div class="toast-title">🎉 AVAILABLE IN SHOP!</div>
-        <div id="toastCharName" class="toast-char-name">VOLT DASH</div>
-        <div id="toastCharAbility" class="toast-ability">Ability: Sonic Arc Dash [SHIFT]</div>
-      </div>
-
-      <!-- HUD Top Bar -->
-      <div id="hud">
-        <!-- Top Left Group: Timer & Void Distance Indicator Box -->
-        <div class="hud-left-group">
-          <div class="hud-card timer-card">
-            <div class="hud-label">SURVIVAL TIME</div>
-            <div id="timerDisplay" class="hud-value">00:00.00</div>
-          </div>
-
-          <div id="distanceBox" class="hud-card distance-card">
-            <div class="hud-label">VOID DISTANCE</div>
-            <div class="distance-value-row">
-              <span id="distanceMeters" class="hud-value">180.0</span>
-              <span class="hud-unit">m</span>
-              <span id="distanceDegrees" class="distance-deg">(180°)</span>
+      <!-- Glassmorphic HUD Header Overlay -->
+      <div id="hudOverlay">
+        <div class="hud-top-bar">
+          <!-- Left: Lap & Distance Info -->
+          <div class="hud-left">
+            <div class="hud-badge lap-badge">
+              <span class="hud-label">LAP</span>
+              <span id="lapDisplay" class="hud-value">1</span>
             </div>
-            <div class="radar-bar-container">
-              <div id="radarBar" class="radar-bar-fill" style="width: 100%;"></div>
-            </div>
-            <div id="proximityAlert" class="proximity-alert hidden">CRITICAL WARNING</div>
-          </div>
-        </div>
-
-        <!-- Top Right Group: Lap, Ability, & Active 6-Sec Power-Up Badge -->
-        <div class="hud-right-group">
-          <!-- Active 6-Sec Power-Up Badge -->
-          <div id="powerUpBadge" class="hud-card powerup-card hidden">
-            <div class="hud-label" id="powerUpLabel">POWER-UP (6s)</div>
-            <div class="powerup-status-row">
-              <span id="powerUpName" class="hud-value-sm">⚡ TURBO SPEED</span>
-              <div class="cooldown-bar">
-                <div id="powerUpFill" class="cooldown-fill"></div>
+            <div id="distanceBox" class="hud-badge distance-badge">
+              <span class="hud-label">RADAR PROXIMITY</span>
+              <div class="radar-bar-container">
+                <div id="radarBar" class="radar-bar-fill"></div>
               </div>
+              <span id="distanceMeters" class="hud-value">180.0 m</span>
+              <span id="distanceDegrees" class="hud-sub"> (180°)</span>
             </div>
           </div>
 
-          <!-- Active Character Ability Badge -->
-          <div id="abilityBadge" class="hud-card ability-card">
-            <div class="hud-label" id="abilityLabel">ABILITY: DOUBLE JUMP</div>
-            <div class="ability-status-row">
-              <span id="charNameBadge" class="hud-value-sm">CYAN RUNNER</span>
-              <div id="dashCooldownBar" class="cooldown-bar hidden">
-                <div id="dashFill" class="cooldown-fill"></div>
+          <!-- Center: Lap Name & Active Power-Up Badges -->
+          <div class="hud-center">
+            <div id="lapName" class="lap-title-text">LAP 1 - Spike Floor Awakening</div>
+            <div id="proximityAlert" class="proximity-alert hidden">⚠️ VOID APPROACHING ⚠️</div>
+            <div id="powerUpBadge" class="power-up-active-badge hidden">
+              <span id="powerUpName" class="power-up-title">⚡ TURBO SPEED</span>
+              <div class="power-up-timer-bar"><div id="powerUpFill" class="power-up-fill-inner"></div></div>
+            </div>
+          </div>
+
+          <!-- Right: Timer, Ability Cooldown & Gems Collected -->
+          <div class="hud-right">
+            <div class="hud-badge timer-badge">
+              <span class="hud-label">TIME</span>
+              <span id="timerDisplay" class="hud-value">00:00.00</span>
+            </div>
+            <!-- Active Character Badge & Dash Cooldown Bar -->
+            <div class="hud-badge ability-badge">
+              <span id="charNameBadge" class="char-badge-name">CYAN RUNNER</span>
+              <div id="dashCooldownBar" class="dash-cooldown-container">
+                <div id="dashFill" class="dash-fill-inner"></div>
               </div>
-              <span id="shieldCountBadge" class="shield-badge hidden">🛡️ 1 SHIELD</span>
+              <span id="shieldCountBadge" class="shield-badge-count hidden">🛡️ 1 SHIELD</span>
             </div>
-          </div>
-
-          <div class="hud-card lap-card">
-            <div class="hud-label" id="lapName">LAP 1 - Skyblock Orbit</div>
-            <div class="lap-score-row">
-              <span class="hud-label-sm">LAP</span>
-              <span id="lapDisplay" class="hud-value-accent">1</span>
-              <span class="score-divider">|</span>
-              <span class="hud-label-sm">CRYSTALS</span>
+            <div class="hud-badge crystal-badge">
+              <span class="hud-label">GEMS</span>
               <span id="crystalDisplay" class="hud-value-accent">0</span>
             </div>
           </div>
@@ -94,30 +82,38 @@
         <button id="pauseBtn" class="icon-btn" title="Pause Game (P)">⏸️</button>
       </div>
 
-      <!-- Mobile Touch Controls Overlay (Ability on Bottom-Left, Jump & Arrows on Bottom-Right) -->
+      <!-- Mobile Touch Controls Overlay (Ability on Bottom-Left, Jump & Run Arrow on Bottom-Right) -->
       <div id="touchControls" class="touch-controls-container hidden">
         <!-- Bottom-Left: Ability Button -->
         <div class="touch-left-group">
           <button id="btnTouchAbility" class="touch-btn action-btn ability-btn" title="Special Ability">⚡ ABILITY</button>
         </div>
 
-        <!-- Bottom-Right: Jump Button on top, Left/Right Arrows underneath -->
+        <!-- Bottom-Right: Jump Button on top, Run Arrow underneath -->
         <div class="touch-right-stack">
           <button id="btnTouchJump" class="touch-btn action-btn jump-btn" title="Jump">🦘 JUMP</button>
           <div class="touch-dpad-row">
-            <button id="btnTouchLeft" class="touch-btn dpad-btn" title="Move Left">◀</button>
-            <button id="btnTouchRight" class="touch-btn dpad-btn" title="Move Right">▶</button>
+            <button id="btnTouchRight" class="touch-btn dpad-btn full-width-run" title="Run Forward">RUN ▶</button>
           </div>
         </div>
       </div>
 
       <!-- Control Instructions Footer Bar (Desktop Keyboard) -->
       <div id="controlsHint">
-        <span><kbd>A</kbd> / <kbd>D</kbd> or <kbd>◀</kbd> / <kbd>▶</kbd> Move</span>
+        <span><kbd>D</kbd> / <kbd>▶</kbd> Run Forward</span>
         <span><kbd>SPACE</kbd> / <kbd>W</kbd> / <kbd>▲</kbd> Jump</span>
         <span id="abilityKeyHint"><kbd>SHIFT</kbd> Ability</span>
         <span><kbd>G</kbd> Guide Book</span>
         <span><kbd>R</kbd> Retry</span>
+      </div>
+
+      <!-- Toast Notification Overlay -->
+      <div id="unlockToast" class="toast-notification hidden">
+        <div class="toast-content">
+          <span class="toast-title">⭐ SHOP UNLOCK AVAILABLE!</span>
+          <span id="toastCharName" class="toast-char-name">VOLT DASH</span>
+          <span id="toastCharAbility" class="toast-ability-desc">UNLOCKED IN SHOP! Buy with Crystals.</span>
+        </div>
       </div>
 
       <!-- Overlay Screens -->
@@ -131,12 +127,12 @@
             <button id="selectDesktopBtn" class="device-choice-btn">
               <span class="device-icon">💻</span>
               <span class="device-title">DESKTOP / KEYBOARD</span>
-              <span class="device-desc">Use A/D keys to run & Space/W/Up Arrow to jump</span>
+              <span class="device-desc">Use D / Right Arrow to run & Space / W / Up Arrow to jump</span>
             </button>
             <button id="selectMobileBtn" class="device-choice-btn accent">
               <span class="device-icon">📱</span>
               <span class="device-title">MOBILE / TOUCH</span>
-              <span class="device-desc">On-screen arrow keys & touch buttons</span>
+              <span class="device-desc">On-screen Run ▶ button & Touch Jump</span>
             </button>
           </div>
         </div>
@@ -315,8 +311,8 @@
               <div class="guide-section-title">DESKTOP / KEYBOARD CONTROLS</div>
               <div class="guide-key-grid">
                 <div class="key-card">
-                  <kbd>A</kbd> / <kbd>D</kbd> or <kbd>◀</kbd> / <kbd>▶</kbd>
-                  <span>Run Left / Right</span>
+                  <kbd>D</kbd> or <kbd>▶</kbd>
+                  <span>Run Forward</span>
                 </div>
                 <div class="key-card">
                   <kbd>SPACE</kbd> / <kbd>W</kbd> / <kbd>▲ UP</kbd>
@@ -343,7 +339,7 @@
               <div class="guide-section-title" style="margin-top: 8px;">MOBILE TOUCH CONTROLS</div>
               <div class="guide-text">
                 • <strong>⚡ ABILITY Button</strong>: Bottom-Left corner.<br>
-                • <strong>🦘 JUMP & ◀ / ▶ D-Pad Arrows</strong>: Stacked cleanly in the Bottom-Right corner.
+                • <strong>🦘 JUMP & RUN ▶ Button</strong>: Stacked cleanly in the Bottom-Right corner.
               </div>
             </div>
 
