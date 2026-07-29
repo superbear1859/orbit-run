@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-CDhjWZq-.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Cx9pDGRH.css">
+  <script type="module" crossorigin src="./assets/index-C9hNs7GW.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CK4tsrH1.css">
 </head>
 <body>
   <div id="app">
@@ -75,6 +75,7 @@
 
       <!-- Quick Controls Badge & Sound Toggle -->
       <div id="topControls">
+        <button id="guideBookBtn" class="icon-btn" title="Guide Book (G)">📖</button>
         <button id="deviceSelectBtn" class="icon-btn" title="Device Mode (Mobile/PC)">📱</button>
         <button id="charRosterBtn" class="icon-btn" title="Character Shop (C)">🛒</button>
         <button id="soundBtn" class="icon-btn" title="Toggle Mute (M)">🔊</button>
@@ -103,6 +104,7 @@
         <span><kbd>A</kbd> / <kbd>D</kbd> Move</span>
         <span><kbd>SPACE</kbd> Jump</span>
         <span id="abilityKeyHint"><kbd>SHIFT</kbd> Ability</span>
+        <span><kbd>G</kbd> Guide</span>
         <span><kbd>R</kbd> Retry</span>
       </div>
 
@@ -197,7 +199,7 @@
           </div>
 
           <div id="characterGrid" class="character-grid">
-            <!-- Dynamically populated 16 character cards -->
+            <!-- Dynamically populated 17 character cards -->
           </div>
 
           <div class="shop-footer-row">
@@ -219,6 +221,105 @@
       <!-- 5. Level Start Countdown Overlay -->
       <div id="countdownOverlay" class="overlay hidden">
         <div id="countdownNumber" class="countdown-num">3</div>
+      </div>
+
+      <!-- 6. Interactive Guide Book Modal -->
+      <div id="guideModalOverlay" class="overlay hidden">
+        <div class="overlay-card guide-card">
+          <div class="guide-header">
+            <h2>📖 ORBIT RUN GUIDE BOOK</h2>
+            <p class="guide-subtitle">Master orbital survival physics, characters, hazards & secrets!</p>
+          </div>
+
+          <!-- Guide Tabs -->
+          <div class="guide-nav-tabs">
+            <button class="guide-tab-btn active" data-tab="controls">🎮 CONTROLS</button>
+            <button class="guide-tab-btn" data-tab="mechanics">🌀 MECHANICS</button>
+            <button class="guide-tab-btn" data-tab="hazards">👾 HAZARDS & ENEMIES</button>
+            <button class="guide-tab-btn" data-tab="cheats">🔑 SECRETS & CHEATS</button>
+          </div>
+
+          <!-- Guide Tab Contents -->
+          <div class="guide-content-area">
+            <!-- Tab 1: Controls -->
+            <div id="tab-controls" class="guide-tab-panel active">
+              <div class="guide-section-title">DESKTOP KEYBOARD CONTROLS</div>
+              <div class="guide-key-grid">
+                <div class="key-card"><kbd>A</kbd> / <kbd>D</kbd> or <kbd>◀</kbd> / <kbd>▶</kbd> <span>Run Left / Right</span></div>
+                <div class="key-card"><kbd>SPACE</kbd> / <kbd>W</kbd> <span>Jump / Multi-Jump</span></div>
+                <div class="key-card"><kbd>SHIFT</kbd> / <kbd>E</kbd> <span>Special Character Ability</span></div>
+                <div class="key-card"><kbd>C</kbd> <span>Character Shop Modal</span></div>
+                <div class="key-card"><kbd>G</kbd> <span>Open Guide Book</span></div>
+                <div class="key-card"><kbd>R</kbd> <span>Instant Restart Run</span></div>
+                <div class="key-card"><kbd>P</kbd> <span>Pause / Resume Game</span></div>
+                <div class="key-card"><kbd>M</kbd> <span>Toggle Mute Audio</span></div>
+              </div>
+
+              <div class="guide-section-title" style="margin-top: 14px;">MOBILE TOUCH CONTROLS</div>
+              <p class="guide-text">On mobile devices, tap <strong>⚡ ABILITY</strong> on the bottom-left of the screen, and use <strong>🦘 JUMP</strong> & directional arrows on the bottom-right!</p>
+            </div>
+
+            <!-- Tab 2: Mechanics -->
+            <div id="tab-mechanics" class="guide-tab-panel">
+              <div class="guide-info-box">
+                <div class="info-title">🪐 CIRCULAR ORBITAL GRAVITY</div>
+                <div class="info-desc">Gravity always pulls towards the planet center. Rotating platforms align dynamically to your orbital position!</div>
+              </div>
+              <div class="guide-info-box">
+                <div class="info-title">⚡ AIR DASH SMASH</div>
+                <div class="info-desc">Dashing with Volt Dash, Chrono God, or Aegis Blaster allows you to smash directly through Shadow Drones!</div>
+              </div>
+              <div class="guide-info-box">
+                <div class="info-title">🌌 SHADOW VOID PURSUIT</div>
+                <div class="info-desc">The Shadow Void wall creeps counter-clockwise behind you. Use Void Blast abilities to push it back up to 180°!</div>
+              </div>
+            </div>
+
+            <!-- Tab 3: Hazards & Enemies -->
+            <div id="tab-hazards" class="guide-tab-panel">
+              <div class="guide-grid">
+                <div class="hazard-card">
+                  <div class="hazard-icon">🔥</div>
+                  <div class="hazard-name">Spike Floor</div>
+                  <div class="hazard-desc">The entire surface of the planet is covered in sharp spikes. Always land on floating platforms!</div>
+                </div>
+                <div class="hazard-card">
+                  <div class="hazard-icon">🛸</div>
+                  <div class="hazard-name">Shadow Drone</div>
+                  <div class="hazard-desc">Patrolling void craft. Blast or Dash into them to destroy for <strong>+5 Crystals</strong>!</div>
+                </div>
+                <div class="hazard-card">
+                  <div class="hazard-icon">💥</div>
+                  <div class="hazard-name">Plasma Mine</div>
+                  <div class="hazard-desc">Orbital mines with spinning energy spikes. Avoid or detonate with Void Blast for <strong>+5 Crystals</strong>!</div>
+                </div>
+                <div class="hazard-card">
+                  <div class="hazard-icon">🌌</div>
+                  <div class="hazard-name">Shadow Void</div>
+                  <div class="hazard-desc">If the dark void wall catches up to you from behind, the run immediately ends!</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 4: Secrets & Cheats -->
+            <div id="tab-cheats" class="guide-tab-panel">
+              <div class="secret-box">
+                <div class="secret-header">👑 UNLOCK ALL CHARACTERS CHEAT CODE</div>
+                <div class="secret-code">superbear1859yyyyy</div>
+                <div class="secret-desc">Type this secret code anywhere on your keyboard during a game to instantly unlock ALL 17 Characters + 9,999 Crystals!</div>
+              </div>
+
+              <div class="guide-info-box" style="margin-top: 12px;">
+                <div class="info-title">💎 SHOP ECONOMY TIP</div>
+                <div class="info-desc">Running required distances permanently unlocks characters in the shop. Collect gold Crystals in runs or destroy enemies to buy them!</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="guide-footer">
+            <button id="closeGuideBtn" class="btn-primary">CLOSE GUIDE</button>
+          </div>
+        </div>
       </div>
 
     </div>

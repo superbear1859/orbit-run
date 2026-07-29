@@ -127,6 +127,7 @@ class GameEngine {
       soundBtn: document.getElementById('soundBtn'),
       pauseBtn: document.getElementById('pauseBtn'),
       charRosterBtn: document.getElementById('charRosterBtn'),
+      guideBookBtn: document.getElementById('guideBookBtn'),
       deviceSelectBtn: document.getElementById('deviceSelectBtn'),
       touchControls: document.getElementById('touchControls'),
       btnTouchLeft: document.getElementById('btnTouchLeft'),
@@ -141,6 +142,8 @@ class GameEngine {
       gameOverOverlay: document.getElementById('gameOverOverlay'),
       pauseOverlay: document.getElementById('pauseOverlay'),
       charModalOverlay: document.getElementById('charModalOverlay'),
+      guideModalOverlay: document.getElementById('guideModalOverlay'),
+      closeGuideBtn: document.getElementById('closeGuideBtn'),
       countdownOverlay: document.getElementById('countdownOverlay'),
       countdownNumber: document.getElementById('countdownNumber'),
       startBtn: document.getElementById('startBtn'),
@@ -173,6 +176,7 @@ class GameEngine {
 
     this.initEventListeners();
     this.initTouchControls();
+    this.initGuideTabs();
     this.updateActiveCharacterDisplay();
 
     // ALWAYS show device selection prompt on initial load!
@@ -282,6 +286,23 @@ class GameEngine {
     });
   }
 
+  initGuideTabs() {
+    const tabBtns = document.querySelectorAll('.guide-tab-btn');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabName = btn.getAttribute('data-tab');
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.guide-tab-panel').forEach(panel => {
+          panel.classList.remove('active');
+        });
+        const targetPanel = document.getElementById(`tab-${tabName}`);
+        if (targetPanel) targetPanel.classList.add('active');
+      });
+    });
+  }
+
   activateUnlockAllCheat() {
     this.purchasedCharIds = CHARACTERS.map(c => c.id);
     this.availableShopCharIds = CHARACTERS.map(c => c.id);
@@ -361,6 +382,9 @@ class GameEngine {
       if (e.code === 'KeyC') {
         this.toggleRosterModal();
       }
+      if (e.code === 'KeyG') {
+        this.toggleGuideModal();
+      }
       if (e.code === 'KeyR') {
         if (this.state === 'GAMEOVER' || this.state === 'RUNNING') {
           this.startCountdown();
@@ -397,6 +421,8 @@ class GameEngine {
     this.dom.soundBtn.addEventListener('click', () => this.toggleMute());
     this.dom.pauseBtn.addEventListener('click', () => this.togglePause());
     this.dom.charRosterBtn.addEventListener('click', () => this.toggleRosterModal());
+    this.dom.guideBookBtn.addEventListener('click', () => this.toggleGuideModal());
+    this.dom.closeGuideBtn.addEventListener('click', () => this.toggleGuideModal());
     this.dom.openRosterBtn.addEventListener('click', () => this.toggleRosterModal());
     this.dom.deathRosterBtn.addEventListener('click', () => this.toggleRosterModal());
     this.dom.closeRosterBtn.addEventListener('click', () => this.toggleRosterModal());
@@ -427,6 +453,14 @@ class GameEngine {
       this.dom.charModalOverlay.classList.remove('hidden');
     } else {
       this.dom.charModalOverlay.classList.add('hidden');
+    }
+  }
+
+  toggleGuideModal() {
+    if (this.dom.guideModalOverlay.classList.contains('hidden')) {
+      this.dom.guideModalOverlay.classList.remove('hidden');
+    } else {
+      this.dom.guideModalOverlay.classList.add('hidden');
     }
   }
 
@@ -702,6 +736,7 @@ class GameEngine {
     this.dom.startOverlay.classList.add('hidden');
     this.dom.gameOverOverlay.classList.add('hidden');
     this.dom.charModalOverlay.classList.add('hidden');
+    this.dom.guideModalOverlay.classList.add('hidden');
     this.dom.pauseOverlay.classList.add('hidden');
 
     this.dom.countdownOverlay.classList.remove('hidden');
