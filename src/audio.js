@@ -1,4 +1,4 @@
-// Web Audio API Synthesizer (Zero External Assets, 100% Fail-Safe)
+// Web Audio API Synthesizer (Zero External Assets, 100% Bulletproof Fail-Safe)
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -10,7 +10,7 @@ class SoundSystem {
 
   init() {
     try {
-      if (this.ctx) return;
+      if (this.ctx && this.ctx.state !== 'closed') return;
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (AudioContext) {
         this.ctx = new AudioContext();
@@ -21,26 +21,34 @@ class SoundSystem {
   }
 
   playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.1) {
-    if (this.isMuted || !this.ctx) return;
+    if (this.isMuted || !this.ctx || this.ctx.state === 'closed') return;
     try {
       if (this.ctx.state === 'suspended') {
         this.ctx.resume().catch(() => {});
       }
 
+      const now = this.ctx.currentTime || 0;
+      const safeDuration = Math.max(0.01, duration || 0.1);
+      const safeFreq = Math.max(20, Math.min(20000, freq || 440));
+
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = type;
-      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      osc.frequency.setValueAtTime(safeFreq, now);
 
-      gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+      gain.gain.setValueAtTime(Math.max(0.001, gainVal || 0.1), now);
+      try {
+        gain.gain.exponentialRampToValueAtTime(0.001, now + safeDuration);
+      } catch (e) {
+        gain.gain.linearRampToValueAtTime(0.001, now + safeDuration);
+      }
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
-      osc.start();
-      osc.stop(this.ctx.currentTime + duration);
+      osc.start(now);
+      osc.stop(now + safeDuration);
     } catch (e) {}
   }
 
@@ -67,15 +75,15 @@ class SoundSystem {
   }
 
   startVoidHum() {
-    if (this.voidHumOsc || !this.ctx || this.isMuted) return;
+    if (this.voidHumOsc || !this.ctx || this.isMuted || this.ctx.state === 'closed') return;
     try {
       this.voidHumOsc = this.ctx.createOscillator();
       this.voidHumGain = this.ctx.createGain();
 
       this.voidHumOsc.type = 'sawtooth';
-      this.voidHumOsc.frequency.setValueAtTime(55, this.ctx.currentTime);
+      this.voidHumOsc.frequency.setValueAtTime(55, this.ctx.currentTime || 0);
 
-      this.voidHumGain.gain.setValueAtTime(0, this.ctx.currentTime);
+      this.voidHumGain.gain.setValueAtTime(0, this.ctx.currentTime || 0);
 
       this.voidHumOsc.connect(this.voidHumGain);
       this.voidHumGain.connect(this.ctx.destination);
@@ -88,9 +96,10 @@ class SoundSystem {
   }
 
   updateVoidProximity(degDiff) {
-    if (!this.ctx || this.isMuted) return;
+    if (!this.ctx || this.isMuted || this.ctx.state === 'closed') return;
 
     try {
+      if (!Number.isFinite(degDiff)) return;
       if (Math.abs(degDiff - this.lastVoidDeg) < 2) return;
       this.lastVoidDeg = degDiff;
 
@@ -98,12 +107,12 @@ class SoundSystem {
         this.startVoidHum();
       }
 
-      if (this.voidHumGain && this.voidHumOsc && Number.isFinite(degDiff)) {
+      if (this.voidHumGain && this.voidHumOsc) {
         const urgency = Math.max(0, Math.min(1, 1 - (degDiff / 90)));
         const targetGain = urgency * 0.12;
         const targetFreq = 55 + (urgency * 90);
 
-        const now = this.ctx.currentTime;
+        const now = this.ctx.currentTime || 0;
         this.voidHumGain.gain.setTargetAtTime(targetGain, now, 0.1);
         this.voidHumOsc.frequency.setTargetAtTime(targetFreq, now, 0.1);
       }

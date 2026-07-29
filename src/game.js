@@ -895,7 +895,7 @@ class GameEngine {
   }
 
   getPlayerWorldPos() {
-    const r = (this.player.radius || (PLANET_RADIUS + 50)) + this.player.height / 2;
+    const r = (Number.isFinite(this.player.radius) ? this.player.radius : (PLANET_RADIUS + 50)) + this.player.height / 2;
     const angle = Number.isFinite(this.player.angle) ? this.player.angle : -Math.PI / 2;
     return {
       x: CENTER_X + Math.cos(angle) * r,
@@ -928,6 +928,13 @@ class GameEngine {
     this.frameCount++;
     this.elapsedTime = performance.now() - this.startTime;
     const deltaMs = 16.667 * dtFactor;
+
+    // Bulletproof NaN State Auto-Recovery Guard
+    if (!Number.isFinite(this.player.angularVel)) this.player.angularVel = 0;
+    if (!Number.isFinite(this.player.angle)) this.player.angle = -Math.PI / 2;
+    if (!Number.isFinite(this.player.radialVel)) this.player.radialVel = 0;
+    if (!Number.isFinite(this.player.radius)) this.player.radius = PLANET_RADIUS + 50;
+    if (!Number.isFinite(this.void.angle)) this.void.angle = this.player.angle - (Math.PI * 0.33);
 
     if (this.toastTimerMs > 0) {
       this.toastTimerMs = Math.max(0, this.toastTimerMs - deltaMs);
@@ -968,12 +975,6 @@ class GameEngine {
     const maxSpeed = MAX_RUN_SPEED_BASE * this.selectedChar.stats.speedMult * speedBonus;
     const accel = RUN_ACCEL_BASE * this.selectedChar.stats.speedMult * speedBonus;
 
-    // Safety NaN Guards
-    if (!Number.isFinite(this.player.angularVel)) this.player.angularVel = 0;
-    if (!Number.isFinite(this.player.angle)) this.player.angle = -Math.PI / 2;
-    if (!Number.isFinite(this.player.radialVel)) this.player.radialVel = 0;
-    if (!Number.isFinite(this.player.radius)) this.player.radius = PLANET_RADIUS + 50;
-
     // 1. Angular Movement (Delta-time normalized)
     if (this.keys.right) {
       this.player.angularVel += accel * dtFactor;
@@ -985,7 +986,7 @@ class GameEngine {
     }
 
     if (!this.player.isDashing) {
-      this.player.angularVel = Math.max(-maxSpeed, Math.min(maxSpeed, this.player.angularVel));
+      this.player.angularVel = Math.max(-maxSpeed, Math.min(maxSpeed, this.player.angularVel || 0));
       this.player.angularVel *= Math.pow(FRICTION, dtFactor);
     } else {
       this.player.dashTimerMs -= deltaMs;
@@ -995,11 +996,13 @@ class GameEngine {
     }
 
     const prevAngle = this.player.angle;
-    this.player.angle += this.player.angularVel * dtFactor;
+    this.player.angle += (this.player.angularVel || 0) * dtFactor;
 
     const arcDeltaRad = Math.abs(this.player.angle - prevAngle);
     const distDeltaMeters = (arcDeltaRad * PLANET_RADIUS) / 10;
-    this.totalDistanceMeters += distDeltaMeters;
+    if (Number.isFinite(distDeltaMeters)) {
+      this.totalDistanceMeters += distDeltaMeters;
+    }
 
     if (this.totalDistanceMeters > this.maxDistanceMeters) {
       this.maxDistanceMeters = this.totalDistanceMeters;
@@ -1033,7 +1036,7 @@ class GameEngine {
     }
 
     this.player.radialVel -= effectiveGravity * dtFactor;
-    this.player.radius += this.player.radialVel * dtFactor;
+    this.player.radius += (this.player.radialVel || 0) * dtFactor;
 
     const playerDeg = this.getNormalizedDegrees(this.player.angle);
     let landedOnPlatform = false;
@@ -1084,7 +1087,7 @@ class GameEngine {
       }
     }
 
-    if (Math.abs(this.player.angularVel) > 0.005 || !this.player.isGrounded) {
+    if (Math.abs(this.player.angularVel || 0) > 0.005 || !this.player.isGrounded) {
       const pos = this.getPlayerWorldPos();
       this.player.trail.push({ x: pos.x, y: pos.y, life: 1 });
       if (this.player.trail.length > 4) this.player.trail.shift();
@@ -1177,7 +1180,7 @@ class GameEngine {
       if (angleDiff < 7 && Math.abs(this.player.radius - pUpRadius) < 70) {
         pUp.collected = true;
 
-        this.powerUpTimerMs = pUp.durationMs || 6000; // 6 seconds duration!
+        this.powerUpTimerMs = pUp.durationMs || 6000;
         this.activePowerUpType = pUp.type;
 
         sounds.playLapComplete();
@@ -1212,7 +1215,6 @@ class GameEngine {
 
       if (angleDiff < 5.5 && Math.abs(pRadius - eRadius) < 26) {
         if (this.player.isDashing || this.activePowerUpType === 'star_invincible') {
-          // Destroy enemy on contact!
           this.destroyEnemy(enemy, "SMASHED!");
           continue;
         }
@@ -1391,7 +1393,7 @@ class GameEngine {
     }
   }
 
-  // --- OPTIMIZED 60FPS RENDER PIPELINE ---
+  // --- RENDER PIPELINE ---
   render() {
     this.ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
