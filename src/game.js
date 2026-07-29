@@ -256,6 +256,7 @@ class GameEngine {
 
   initTouchControls() {
     const bindBtn = (element, onPress, onRelease) => {
+      if (!element) return;
       const start = (e) => {
         e.preventDefault();
         element.classList.add('active');
@@ -945,14 +946,16 @@ class GameEngine {
   }
 
   getPlayerWorldPos() {
-    const r = this.player.radius + this.player.height / 2;
+    const r = (this.player.radius || (PLANET_RADIUS + 50)) + this.player.height / 2;
+    const angle = Number.isFinite(this.player.angle) ? this.player.angle : -Math.PI / 2;
     return {
-      x: CENTER_X + Math.cos(this.player.angle) * r,
-      y: VIEW_CENTER_Y + Math.sin(this.player.angle) * r
+      x: CENTER_X + Math.cos(angle) * r,
+      y: VIEW_CENTER_Y + Math.sin(angle) * r
     };
   }
 
   getNormalizedDegrees(angleRad) {
+    if (!Number.isFinite(angleRad)) return 0;
     let deg = ((angleRad + Math.PI / 2) * 180 / Math.PI) % 360;
     if (deg < 0) deg += 360;
     return deg;
@@ -1015,6 +1018,12 @@ class GameEngine {
     const maxSpeed = MAX_RUN_SPEED_BASE * this.selectedChar.stats.speedMult * speedBonus;
     const accel = RUN_ACCEL_BASE * this.selectedChar.stats.speedMult * speedBonus;
 
+    // Safety NaN Guards
+    if (!Number.isFinite(this.player.angularVel)) this.player.angularVel = 0;
+    if (!Number.isFinite(this.player.angle)) this.player.angle = -Math.PI / 2;
+    if (!Number.isFinite(this.player.radialVel)) this.player.radialVel = 0;
+    if (!Number.isFinite(this.player.radius)) this.player.radius = PLANET_RADIUS + 50;
+
     // 1. Angular Movement (Delta-time normalized)
     if (this.keys.right) {
       this.player.angularVel += accel * dtFactor;
@@ -1049,12 +1058,15 @@ class GameEngine {
 
     this.checkCharacterUnlocksByDistance();
 
-    while (this.player.angle >= Math.PI * 1.5) {
-      this.player.angle -= Math.PI * 2;
-      this.advanceLap();
-    }
-    while (this.player.angle < -Math.PI * 0.5) {
-      this.player.angle += Math.PI * 2;
+    // Safe Non-blocking Lap Wrapping
+    if (this.player.angle >= Math.PI * 1.5) {
+      const lapsCompleted = Math.max(1, Math.floor((this.player.angle - (-Math.PI * 0.5)) / (Math.PI * 2)));
+      this.player.angle -= lapsCompleted * (Math.PI * 2);
+      for (let i = 0; i < Math.min(lapsCompleted, 3); i++) {
+        this.advanceLap();
+      }
+    } else if (this.player.angle < -Math.PI * 0.5) {
+      this.player.angle = -Math.PI * 0.5 + (((this.player.angle + Math.PI * 0.5) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
     }
 
     if (this.player.jumpBufferTimer > 0) {
@@ -1132,8 +1144,12 @@ class GameEngine {
     this.void.angle += currentVoidSpeed * dtFactor;
 
     let angleDiffRad = this.player.angle - this.void.angle;
-    while (angleDiffRad < 0) angleDiffRad += Math.PI * 2;
-    while (angleDiffRad >= Math.PI * 2) angleDiffRad -= Math.PI * 2;
+    if (!Number.isFinite(angleDiffRad)) {
+      angleDiffRad = Math.PI;
+      this.void.angle = this.player.angle - Math.PI;
+    } else {
+      angleDiffRad = ((angleDiffRad % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    }
 
     const angleDiffDeg = (angleDiffRad * 180 / Math.PI);
     const distanceMeters = (angleDiffRad * PLANET_RADIUS / 10).toFixed(1);
@@ -1721,7 +1737,7 @@ class GameEngine {
   }
 
   renderShadowVoid() {
-    const voidRad = this.void.angle;
+    const voidRad = Number.isFinite(this.void.angle) ? this.void.angle : -Math.PI;
 
     this.ctx.save();
 
@@ -1874,17 +1890,22 @@ class GameEngine {
   }
 
   loop(timestamp) {
-    if (!this.lastTimestamp) this.lastTimestamp = timestamp;
-    const deltaMs = timestamp - this.lastTimestamp;
-    this.lastTimestamp = timestamp;
-
-    // Cap delta to prevent huge jumps when unfocusing tabs
-    const cappedDelta = Math.min(deltaMs, 100);
-    const dtFactor = cappedDelta / 16.667;
-
-    this.update(dtFactor);
-    this.render();
     requestAnimationFrame(this.loop);
+
+    try {
+      if (!this.lastTimestamp) this.lastTimestamp = timestamp;
+      const deltaMs = timestamp - this.lastTimestamp;
+      this.lastTimestamp = timestamp;
+
+      // Cap delta to prevent huge jumps when unfocusing tabs or lag spikes
+      const cappedDelta = Math.min(Math.max(0, deltaMs || 0), 100);
+      const dtFactor = cappedDelta / 16.667;
+
+      this.update(dtFactor);
+      this.render();
+    } catch (err) {
+      console.error("Game loop exception caught & recovered:", err);
+    }
   }
 }
 

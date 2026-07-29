@@ -246,15 +246,16 @@ export const LAPS = [
 ];
 
 export function getLapData(lapIndex) {
-  if (lapIndex < LAPS.length) {
-    return JSON.parse(JSON.stringify(LAPS[lapIndex]));
+  const safeIndex = Math.max(0, Math.floor(lapIndex || 0));
+  if (safeIndex < LAPS.length) {
+    return JSON.parse(JSON.stringify(LAPS[safeIndex]));
   }
   const base = LAPS[LAPS.length - 1];
   const copy = JSON.parse(JSON.stringify(base));
   return {
     ...copy,
-    lapNumber: lapIndex + 1,
-    name: `Spike Trial Lap ${lapIndex + 1}`,
-    bgHue: (base.bgHue + (lapIndex - 4) * 40) % 360
+    lapNumber: safeIndex + 1,
+    name: `Spike Trial Lap ${safeIndex + 1}`,
+    bgHue: (base.bgHue + (safeIndex - 4) * 40) % 360
   };
 }
