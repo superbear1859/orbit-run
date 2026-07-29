@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-D29BNHuX.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Bqg0CdG3.css">
+  <script type="module" crossorigin src="./assets/index-Cjwa-gBH.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Cc65H-j-.css">
 </head>
 <body>
   <div id="app">
@@ -87,6 +87,7 @@
       <!-- Quick Controls Badge & Sound Toggle -->
       <div id="topControls">
         <button id="guideBookBtn" class="icon-btn guide-highlight" title="Guide Book (G)">📖 GUIDE</button>
+        <button id="settingsBtn" class="icon-btn" title="Game Settings & Toggles">⚙️ SETTINGS</button>
         <button id="deviceSelectBtn" class="icon-btn" title="Device Mode (Mobile/PC)">📱</button>
         <button id="charRosterBtn" class="icon-btn" title="Character Shop (C)">🛒</button>
         <button id="soundBtn" class="icon-btn" title="Toggle Mute (M)">🔊</button>
@@ -151,6 +152,18 @@
             <span class="preview-label">EQUIPPED RUNNER:</span>
             <span id="activeCharName" class="preview-value">CYAN RUNNER</span>
             <span id="activeCharAbility" class="preview-ability">Double Jump</span>
+          </div>
+
+          <!-- Quick Game Toggles Section -->
+          <div class="quick-toggles-box">
+            <div class="toggle-row">
+              <span class="toggle-label">👾 ENEMIES & MINES:</span>
+              <button id="startToggleEnemies" class="toggle-switch-btn active">ENABLED</button>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">⭐ 6-SEC POWER-UPS:</span>
+              <button id="startTogglePowerUps" class="toggle-switch-btn active">ENABLED</button>
+            </div>
           </div>
 
           <div class="btn-group-row">
@@ -226,7 +239,50 @@
         <div class="overlay-card">
           <h2>GAME PAUSED</h2>
           <p>Take a breath!</p>
+
+          <!-- Pause Quick Game Toggles Section -->
+          <div class="quick-toggles-box">
+            <div class="toggle-row">
+              <span class="toggle-label">👾 ENEMIES & MINES:</span>
+              <button id="pauseToggleEnemies" class="toggle-switch-btn active">ENABLED</button>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">⭐ 6-SEC POWER-UPS:</span>
+              <button id="pauseTogglePowerUps" class="toggle-switch-btn active">ENABLED</button>
+            </div>
+          </div>
+
           <button id="resumeBtn" class="btn-primary">RESUME</button>
+        </div>
+      </div>
+
+      <!-- 4.5 Settings Modal -->
+      <div id="settingsModalOverlay" class="overlay hidden">
+        <div class="overlay-card settings-card">
+          <h2>⚙️ GAME SETTINGS</h2>
+          <p class="guide-subtitle">Toggle enemies or collectible power-ups on or off!</p>
+
+          <div class="settings-toggle-list">
+            <div class="setting-item-box">
+              <div class="setting-text">
+                <span class="setting-title">👾 ENEMIES & HAZARDS</span>
+                <span class="setting-desc">Shadow Drone patrols & Plasma Mines spawning across laps.</span>
+              </div>
+              <button id="settingsToggleEnemies" class="toggle-switch-btn active">ENABLED</button>
+            </div>
+
+            <div class="setting-item-box">
+              <div class="setting-text">
+                <span class="setting-title">⭐ 6-SEC POWER-UPS</span>
+                <span class="setting-desc">Collectible Turbo Speed, Invincible Star, & Super Magnet items.</span>
+              </div>
+              <button id="settingsTogglePowerUps" class="toggle-switch-btn active">ENABLED</button>
+            </div>
+          </div>
+
+          <div class="shop-footer-row">
+            <button id="closeSettingsBtn" class="btn-primary">SAVE & CLOSE</button>
+          </div>
         </div>
       </div>
 
@@ -249,108 +305,129 @@
             <button class="guide-tab-btn" data-tab="mechanics">🌀 MECHANICS</button>
             <button class="guide-tab-btn" data-tab="powerups">⭐ 6-SEC POWER-UPS</button>
             <button class="guide-tab-btn" data-tab="hazards">👾 HAZARDS & ENEMIES</button>
-            <button class="guide-tab-btn" data-tab="cheats">🔑 SECRETS & TIPS</button>
+            <button class="guide-tab-btn" data-tab="secrets">🔑 SECRETS & TIPS</button>
           </div>
 
-          <!-- Guide Tab Contents -->
+          <!-- Guide Content Panels -->
           <div class="guide-content-area">
             <!-- Tab 1: Controls -->
             <div id="tab-controls" class="guide-tab-panel active">
-              <div class="guide-section-title">DESKTOP KEYBOARD CONTROLS</div>
+              <div class="guide-section-title">DESKTOP / KEYBOARD CONTROLS</div>
               <div class="guide-key-grid">
-                <div class="key-card"><kbd>A</kbd> / <kbd>D</kbd> or <kbd>◀</kbd> / <kbd>▶</kbd> <span>Run Left / Right</span></div>
-                <div class="key-card"><kbd>SPACE</kbd> / <kbd>W</kbd> / <kbd>▲ UP</kbd> <span>Jump / Multi-Jump</span></div>
-                <div class="key-card"><kbd>SHIFT</kbd> / <kbd>E</kbd> <span>Special Character Ability</span></div>
-                <div class="key-card"><kbd>C</kbd> <span>Character Shop Modal</span></div>
-                <div class="key-card"><kbd>G</kbd> <span>Open Guide Book</span></div>
-                <div class="key-card"><kbd>R</kbd> <span>Instant Restart Run</span></div>
-                <div class="key-card"><kbd>P</kbd> <span>Pause / Resume Game</span></div>
-                <div class="key-card"><kbd>M</kbd> <span>Toggle Mute Audio</span></div>
+                <div class="key-card">
+                  <kbd>A</kbd> / <kbd>D</kbd> or <kbd>◀</kbd> / <kbd>▶</kbd>
+                  <span>Run Left / Right</span>
+                </div>
+                <div class="key-card">
+                  <kbd>SPACE</kbd> / <kbd>W</kbd> / <kbd>▲ UP</kbd>
+                  <span>Jump / Double Jump</span>
+                </div>
+                <div class="key-card">
+                  <kbd>SHIFT</kbd> / <kbd>E</kbd>
+                  <span>Special Ability (Dash, Solar, Phase)</span>
+                </div>
+                <div class="key-card">
+                  <kbd>C</kbd>
+                  <span>Open Character Shop</span>
+                </div>
+                <div class="key-card">
+                  <kbd>G</kbd>
+                  <span>Open Guide Book</span>
+                </div>
+                <div class="key-card">
+                  <kbd>R</kbd> / <kbd>P</kbd>
+                  <span>Quick Retry / Pause</span>
+                </div>
               </div>
 
-              <div class="guide-section-title" style="margin-top: 14px;">MOBILE TOUCH CONTROLS</div>
-              <p class="guide-text">On mobile devices, tap <strong>⚡ ABILITY</strong> on the bottom-left of the screen, and use <strong>🦘 JUMP</strong> & directional arrows on the bottom-right!</p>
+              <div class="guide-section-title" style="margin-top: 8px;">MOBILE TOUCH CONTROLS</div>
+              <div class="guide-text">
+                • <strong>⚡ ABILITY Button</strong>: Bottom-Left corner.<br>
+                • <strong>🦘 JUMP & ◀ / ▶ D-Pad Arrows</strong>: Stacked cleanly in the Bottom-Right corner.
+              </div>
             </div>
 
             <!-- Tab 2: Mechanics -->
             <div id="tab-mechanics" class="guide-tab-panel">
               <div class="guide-info-box">
-                <div class="info-title">🪐 CIRCULAR ORBITAL GRAVITY</div>
-                <div class="info-desc">Gravity always pulls towards the planet center. Rotating platforms align dynamically to your orbital position!</div>
+                <span class="info-title">🌀 THE SHADOW VOID</span>
+                <span class="info-desc">A dark vortex wall pursues you clockwise around the planet. It speeds up each lap! Stay far ahead or trigger Solar Blasts to push it back.</span>
               </div>
               <div class="guide-info-box">
-                <div class="info-title">⚡ AIR DASH SMASH</div>
-                <div class="info-desc">Dashing with Volt Dash, Chrono God, or Aegis Blaster allows you to smash directly through Shadow Drones!</div>
+                <span class="info-title">🔥 THE SPIKED PLANET FLOOR</span>
+                <span class="info-desc">The entire base planet surface is covered in red spikes! You MUST stay on floating platforms to survive.</span>
               </div>
               <div class="guide-info-box">
-                <div class="info-title">🌌 SHADOW VOID PURSUIT</div>
-                <div class="info-desc">The Shadow Void wall creeps counter-clockwise behind you. Use Void Blast abilities to push it back up to 180°!</div>
+                <span class="info-title">💎 CRYSTALS & SHOP UNLOCKS</span>
+                <span class="info-desc">Collect floating Gold Crystals (+3 Gems) and destroy drones (+5 Gems). Reach required distance meters to unlock shop runners!</span>
               </div>
             </div>
 
             <!-- Tab 3: Power-Ups -->
             <div id="tab-powerups" class="guide-tab-panel">
+              <div class="guide-section-title">6-SECOND COLLECTIBLE POWER-UPS</div>
               <div class="guide-grid">
                 <div class="hazard-card" style="border-color: var(--neon-amber);">
-                  <div class="hazard-icon">⚡</div>
-                  <div class="hazard-name" style="color: var(--neon-amber);">Turbo Speed (6s)</div>
-                  <div class="hazard-desc">Grants **+50% Movement Speed** for 6 seconds!</div>
+                  <span class="hazard-icon">⚡</span>
+                  <span class="hazard-name" style="color: var(--neon-amber);">TURBO SPEED (6s)</span>
+                  <span class="hazard-desc">+50% Movement Speed boost to outrun the Void rapidly!</span>
                 </div>
                 <div class="hazard-card" style="border-color: var(--neon-rose);">
-                  <div class="hazard-icon">⭐</div>
-                  <div class="hazard-name" style="color: var(--neon-rose);">Invincibility Star (6s)</div>
-                  <div class="hazard-desc">Immunity to all spikes, hazards, and enemy drones for 6 seconds!</div>
+                  <span class="hazard-icon">⭐</span>
+                  <span class="hazard-name" style="color: var(--neon-rose);">INVINCIBILITY STAR (6s)</span>
+                  <span class="hazard-desc">Full immunity to floor spikes, floating hazards, and enemies!</span>
                 </div>
                 <div class="hazard-card" style="border-color: var(--neon-cyan);">
-                  <div class="hazard-icon">🧲</div>
-                  <div class="hazard-name" style="color: var(--neon-cyan);">Super Magnet (6s)</div>
-                  <div class="hazard-desc">Attracts all crystals across the entire planet for 6 seconds!</div>
+                  <span class="hazard-icon">🧲</span>
+                  <span class="hazard-name" style="color: var(--neon-cyan);">SUPER MAGNET (6s)</span>
+                  <span class="hazard-desc">Attracts all Gold Crystals across the entire planet automatically!</span>
                 </div>
               </div>
             </div>
 
             <!-- Tab 4: Hazards & Enemies -->
             <div id="tab-hazards" class="guide-tab-panel">
+              <div class="guide-section-title">ENEMIES & OBSTACLES</div>
               <div class="guide-grid">
                 <div class="hazard-card">
-                  <div class="hazard-icon">🔥</div>
-                  <div class="hazard-name">Spike Floor</div>
-                  <div class="hazard-desc">The entire surface of the planet is covered in sharp spikes. Always land on floating platforms!</div>
+                  <span class="hazard-icon">🛸</span>
+                  <span class="hazard-name">SHADOW DRONE PATROL</span>
+                  <span class="hazard-desc">Patrolling airborne craft. Smash via Air Dash or Solar Blast for +5 Crystals!</span>
                 </div>
                 <div class="hazard-card">
-                  <div class="hazard-icon">🛸</div>
-                  <div class="hazard-name">Shadow Drone</div>
-                  <div class="hazard-desc">Patrolling void craft. Blast or Dash into them to destroy for <strong>+5 Crystals</strong>!</div>
+                  <span class="hazard-icon">💣</span>
+                  <span class="hazard-name">PLASMA MINE</span>
+                  <span class="hazard-desc">Stationary floating mine with rotating spikes. Blast or avoid!</span>
                 </div>
                 <div class="hazard-card">
-                  <div class="hazard-icon">💥</div>
-                  <div class="hazard-name">Plasma Mine</div>
-                  <div class="hazard-desc">Orbital mines with spinning energy spikes. Avoid or detonate with Void Blast for <strong>+5 Crystals</strong>!</div>
-                </div>
-                <div class="hazard-card">
-                  <div class="hazard-icon">🌌</div>
-                  <div class="hazard-name">Shadow Void</div>
-                  <div class="hazard-desc">If the dark void wall catches up to you from behind, the run immediately ends!</div>
+                  <span class="hazard-icon">🔺</span>
+                  <span class="hazard-name">AIRBORNE SPIKES</span>
+                  <span class="hazard-desc">Floating red hazards suspended above platforms. Jump cleanly over!</span>
                 </div>
               </div>
             </div>
 
             <!-- Tab 5: Secrets & Tips -->
-            <div id="tab-cheats" class="guide-tab-panel">
-              <div class="secret-box" style="background: rgba(56, 189, 248, 0.1); border-color: var(--neon-cyan);">
-                <div class="secret-header" style="color: var(--neon-cyan);">🤫 CLASSIFIED EASTER EGG</div>
-                <div class="secret-desc">A secret key combination exists that unlocks all runners... only true masters know the secret code!</div>
+            <div id="tab-secrets" class="guide-tab-panel">
+              <div class="guide-info-box">
+                <span class="info-title">💡 PRO TIPS</span>
+                <span class="info-desc">
+                  • Use Coyote Time to jump right after walking off platform edges.<br>
+                  • Void Slayer (3,000 Crystals) unleashes a massive 180° Solar Blast that pushes the Void halfway around the planet!<br>
+                  • You can disable power-ups or enemies anytime in the ⚙️ SETTINGS menu.
+                </span>
               </div>
 
-              <div class="guide-info-box" style="margin-top: 12px;">
-                <div class="info-title">💎 SHOP ECONOMY TIP</div>
-                <div class="info-desc">Running required distances permanently unlocks characters in the shop. Collect gold Crystals in runs or destroy enemies to buy them!</div>
+              <div class="secret-box">
+                <span class="secret-header">🔐 CLASSIFIED EASTER EGG</span>
+                <span class="secret-code">??? EASTER EGG ???</span>
+                <span class="secret-desc">Type the secret master developer code on your keyboard anytime to unlock all 17 runners instantly!</span>
               </div>
             </div>
           </div>
 
           <div class="guide-footer">
-            <button id="closeGuideBtn" class="btn-primary">CLOSE GUIDE</button>
+            <button id="closeGuideBtn" class="btn-primary">GOT IT!</button>
           </div>
         </div>
       </div>
