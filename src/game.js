@@ -26,6 +26,7 @@ const FRICTION = 0.86;
 
 const COYOTE_TIME_MAX = 8;
 const JUMP_BUFFER_MAX = 6;
+const MAX_PARTICLES = 35; // Strict particle cap to prevent frame lag
 
 class GameEngine {
   constructor() {
@@ -230,7 +231,7 @@ class GameEngine {
 
   generateStarfield() {
     const stars = [];
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 90; i++) {
       stars.push({
         x: Math.random() * CANVAS_SIZE,
         y: Math.random() * CANVAS_SIZE,
@@ -668,72 +669,43 @@ class GameEngine {
 
   spawnDashParticles() {
     const pos = this.getPlayerWorldPos();
-    for (let i = 0; i < 15; i++) {
-      this.particles.push({
-        x: pos.x,
-        y: pos.y,
-        vx: (Math.random() - 0.5) * 6,
-        vy: (Math.random() - 0.5) * 6,
-        radius: Math.random() * 3 + 2,
-        color: this.selectedChar.color,
-        life: 1,
-        decay: 0.05
-      });
+    for (let i = 0; i < 8; i++) {
+      this.addParticle(pos.x, pos.y, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, Math.random() * 3 + 2, this.selectedChar.color, 0.06);
     }
   }
 
   spawnSolarFlareParticles(pushDegrees = 60) {
     const pos = this.getPlayerWorldPos();
-    const count = pushDegrees > 100 ? 65 : 35;
+    const count = pushDegrees > 100 ? 16 : 10;
     const pColor = pushDegrees > 100 ? '#10b981' : '#f97316';
-    const speed = pushDegrees > 100 ? 12 : 7;
+    const speed = pushDegrees > 100 ? 10 : 6;
 
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count;
-      this.particles.push({
-        x: pos.x,
-        y: pos.y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        radius: Math.random() * 5 + 3,
-        color: pColor,
-        life: 1,
-        decay: 0.025
-      });
+      this.addParticle(pos.x, pos.y, Math.cos(angle) * speed, Math.sin(angle) * speed, Math.random() * 4 + 2, pColor, 0.05);
     }
   }
 
   spawnPhaseParticles() {
     const pos = this.getPlayerWorldPos();
-    for (let i = 0; i < 20; i++) {
-      this.particles.push({
-        x: pos.x,
-        y: pos.y,
-        vx: (Math.random() - 0.5) * 4,
-        vy: (Math.random() - 0.5) * 4,
-        radius: Math.random() * 4 + 2,
-        color: '#a855f7',
-        life: 1,
-        decay: 0.04
-      });
+    for (let i = 0; i < 10; i++) {
+      this.addParticle(pos.x, pos.y, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, Math.random() * 4 + 2, '#a855f7', 0.05);
     }
   }
 
   spawnEnemyExplosionParticles(x, y, enemyType) {
     const mainColor = enemyType === 'shadow_drone' ? '#c084fc' : '#f43f5e';
-    for (let i = 0; i < 25; i++) {
-      const angle = (Math.PI * 2 * i) / 25;
-      const speed = Math.random() * 5 + 2;
-      this.particles.push({
-        x: x,
-        y: y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        radius: Math.random() * 4 + 2,
-        color: Math.random() > 0.5 ? mainColor : '#fbbf24',
-        life: 1,
-        decay: 0.035
-      });
+    for (let i = 0; i < 12; i++) {
+      const angle = (Math.PI * 2 * i) / 12;
+      const speed = Math.random() * 4 + 2;
+      this.addParticle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, Math.random() * 4 + 2, Math.random() > 0.5 ? mainColor : '#fbbf24', 0.05);
+    }
+  }
+
+  addParticle(x, y, vx, vy, radius, color, decay) {
+    this.particles.push({ x, y, vx, vy, radius, color, life: 1, decay });
+    if (this.particles.length > MAX_PARTICLES) {
+      this.particles.shift();
     }
   }
 
@@ -867,81 +839,36 @@ class GameEngine {
 
   spawnJumpParticles() {
     const pos = this.getPlayerWorldPos();
-    for (let i = 0; i < 8; i++) {
-      this.particles.push({
-        x: pos.x,
-        y: pos.y,
-        vx: (Math.random() - 0.5) * 3,
-        vy: (Math.random() - 0.5) * 3,
-        radius: Math.random() * 3 + 2,
-        color: this.selectedChar.color,
-        life: 1,
-        decay: 0.06
-      });
+    for (let i = 0; i < 5; i++) {
+      this.addParticle(pos.x, pos.y, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3, Math.random() * 3 + 2, this.selectedChar.color, 0.08);
     }
   }
 
   spawnDoubleJumpParticles() {
     const pos = this.getPlayerWorldPos();
-    for (let i = 0; i < 12; i++) {
-      const angle = (Math.PI * 2 * i) / 12;
-      this.particles.push({
-        x: pos.x,
-        y: pos.y,
-        vx: Math.cos(angle) * 4,
-        vy: Math.sin(angle) * 4,
-        radius: Math.random() * 3 + 2,
-        color: this.selectedChar.trailColor,
-        life: 1,
-        decay: 0.05
-      });
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 * i) / 8;
+      this.addParticle(pos.x, pos.y, Math.cos(angle) * 4, Math.sin(angle) * 4, Math.random() * 3 + 2, this.selectedChar.trailColor, 0.07);
     }
   }
 
   spawnCrystalParticles(x, y) {
-    for (let i = 0; i < 10; i++) {
-      this.particles.push({
-        x: x,
-        y: y,
-        vx: (Math.random() - 0.5) * 4,
-        vy: (Math.random() - 0.5) * 4,
-        radius: Math.random() * 3 + 2,
-        color: '#fbbf24',
-        life: 1,
-        decay: 0.04
-      });
+    for (let i = 0; i < 6; i++) {
+      this.addParticle(x, y, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, Math.random() * 3 + 2, '#fbbf24', 0.06);
     }
   }
 
   spawnPowerUpParticles(x, y, pType) {
     const color = pType === 'hyper_speed' ? '#eab308' : (pType === 'star_invincible' ? '#f43f5e' : '#38bdf8');
-    for (let i = 0; i < 20; i++) {
-      const angle = (Math.PI * 2 * i) / 20;
-      this.particles.push({
-        x: x,
-        y: y,
-        vx: Math.cos(angle) * 5,
-        vy: Math.sin(angle) * 5,
-        radius: Math.random() * 4 + 2,
-        color: color,
-        life: 1,
-        decay: 0.04
-      });
+    for (let i = 0; i < 10; i++) {
+      const angle = (Math.PI * 2 * i) / 10;
+      this.addParticle(x, y, Math.cos(angle) * 4, Math.sin(angle) * 4, Math.random() * 4 + 2, color, 0.05);
     }
   }
 
   spawnDeathParticles(x, y) {
-    for (let i = 0; i < 30; i++) {
-      this.particles.push({
-        x: x,
-        y: y,
-        vx: (Math.random() - 0.5) * 8,
-        vy: (Math.random() - 0.5) * 8,
-        radius: Math.random() * 4 + 2,
-        color: Math.random() > 0.5 ? '#f43f5e' : '#9333ea',
-        life: 1,
-        decay: 0.03
-      });
+    for (let i = 0; i < 16; i++) {
+      this.addParticle(x, y, (Math.random() - 0.5) * 7, (Math.random() - 0.5) * 7, Math.random() * 4 + 2, Math.random() > 0.5 ? '#f43f5e' : '#9333ea', 0.04);
     }
   }
 
@@ -1137,7 +1064,7 @@ class GameEngine {
     if (Math.abs(this.player.angularVel) > 0.005 || !this.player.isGrounded) {
       const pos = this.getPlayerWorldPos();
       this.player.trail.push({ x: pos.x, y: pos.y, life: 1 });
-      if (this.player.trail.length > 10) this.player.trail.shift();
+      if (this.player.trail.length > 5) this.player.trail.shift();
     }
 
     // 3. Update Void Movement (Delta-time normalized)
@@ -1189,18 +1116,24 @@ class GameEngine {
     this.checkCrystalCollisions(playerDeg);
     this.checkPowerUpCollisions(playerDeg);
 
-    // 6. Fast Array Particle Filter (Delta-time normalized)
-    this.particles = this.particles.filter(p => {
+    // 6. Fast Array Particle Filter
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
       p.x += p.vx * dtFactor;
       p.y += p.vy * dtFactor;
       p.life -= p.decay * dtFactor;
-      return p.life > 0;
-    });
+      if (p.life <= 0) {
+        this.particles.splice(i, 1);
+      }
+    }
 
-    this.player.trail = this.player.trail.filter(t => {
-      t.life -= 0.1 * dtFactor;
-      return t.life > 0;
-    });
+    for (let i = this.player.trail.length - 1; i >= 0; i--) {
+      const t = this.player.trail[i];
+      t.life -= 0.15 * dtFactor;
+      if (t.life <= 0) {
+        this.player.trail.splice(i, 1);
+      }
+    }
 
     // 7. Update HUD
     this.updateHUD(angleDiffDeg, distanceMeters);
@@ -1344,8 +1277,6 @@ class GameEngine {
     if (this.currentLapData.enemies) {
       this.currentLapData.enemies.forEach(e => e.destroyed = false);
     }
-    // Generate fresh randomized power-ups for the new lap!
-    this.currentLapData.powerUps = generateRandomPowerUps(this.currentLapData);
 
     if (this.selectedChar.stats.hasShield) {
       this.shieldCharges = this.selectedChar.stats.shieldMaxPerLap || 1;
@@ -1434,7 +1365,7 @@ class GameEngine {
     }
   }
 
-  // --- RENDER PIPELINE ---
+  // --- OPTIMIZED 60FPS RENDER PIPELINE ---
   render() {
     this.ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
@@ -1469,7 +1400,7 @@ class GameEngine {
     // 9. Render Shadow Void
     this.renderShadowVoid();
 
-    // 10. Render Particles & Trails
+    // 10. Fast Render Particles & Trails (Shadows disabled for 60FPS)
     this.renderParticles();
 
     // 11. Render Player Character
@@ -1489,9 +1420,6 @@ class GameEngine {
     this.ctx.stroke();
 
     this.ctx.fillStyle = '#f43f5e';
-    this.ctx.shadowColor = '#f43f5e';
-    this.ctx.shadowBlur = 10;
-
     const numSpikes = 72;
     this.ctx.beginPath();
 
@@ -1519,7 +1447,6 @@ class GameEngine {
     }
 
     this.ctx.fill();
-    this.ctx.shadowBlur = 0;
   }
 
   renderPlatforms() {
@@ -1527,8 +1454,6 @@ class GameEngine {
 
     this.ctx.lineWidth = 16;
     this.ctx.strokeStyle = '#38bdf8';
-    this.ctx.shadowColor = '#38bdf8';
-    this.ctx.shadowBlur = 12;
 
     for (const plat of this.currentLapData.platforms) {
       const startRad = (plat.startAngle * Math.PI / 180) - Math.PI / 2;
@@ -1539,8 +1464,6 @@ class GameEngine {
       this.ctx.arc(CENTER_X, VIEW_CENTER_Y, radius, startRad, endRad);
       this.ctx.stroke();
     }
-
-    this.ctx.shadowBlur = 0;
 
     this.ctx.lineWidth = 3;
     this.ctx.strokeStyle = '#ffffff';
@@ -1559,8 +1482,6 @@ class GameEngine {
     if (!this.currentLapData.floatingSpikes) return;
 
     this.ctx.fillStyle = '#f43f5e';
-    this.ctx.shadowColor = '#f43f5e';
-    this.ctx.shadowBlur = 10;
     this.ctx.beginPath();
 
     for (const spike of this.currentLapData.floatingSpikes) {
@@ -1588,7 +1509,6 @@ class GameEngine {
     }
 
     this.ctx.fill();
-    this.ctx.shadowBlur = 0;
   }
 
   renderEnemies() {
@@ -1612,8 +1532,6 @@ class GameEngine {
       if (enemy.type === 'shadow_drone') {
         // Render Shadow Drone Patrol
         this.ctx.fillStyle = '#a855f7';
-        this.ctx.shadowColor = '#c084fc';
-        this.ctx.shadowBlur = 15;
 
         // Drone Body (Futuristic Shield Shape)
         this.ctx.beginPath();
@@ -1627,8 +1545,6 @@ class GameEngine {
 
         // Glowing Visor Eye
         this.ctx.fillStyle = '#f43f5e';
-        this.ctx.shadowColor = '#f43f5e';
-        this.ctx.shadowBlur = 10;
         this.ctx.fillRect(-6, -4, 12, 4);
 
         // Pulsing Thruster Core
@@ -1641,8 +1557,6 @@ class GameEngine {
         // Render Plasma Mine
         const pulse = Math.sin(time * 4) * 2;
         this.ctx.fillStyle = '#ef4444';
-        this.ctx.shadowColor = '#f43f5e';
-        this.ctx.shadowBlur = 20;
 
         // Core Orb
         this.ctx.beginPath();
@@ -1693,8 +1607,6 @@ class GameEngine {
       this.ctx.arc(0, 0, 14 + pulse, 0, Math.PI * 2);
       this.ctx.lineWidth = 2.5;
       this.ctx.strokeStyle = color;
-      this.ctx.shadowColor = color;
-      this.ctx.shadowBlur = 18;
       this.ctx.stroke();
 
       // Inner Core Icon
@@ -1709,6 +1621,8 @@ class GameEngine {
 
   renderCrystals() {
     if (!this.currentLapData.crystals) return;
+
+    this.ctx.fillStyle = '#fbbf24';
 
     for (const c of this.currentLapData.crystals) {
       if (c.collected) continue;
@@ -1727,10 +1641,6 @@ class GameEngine {
       this.ctx.lineTo(0, 9);
       this.ctx.lineTo(-7, 0);
       this.ctx.closePath();
-
-      this.ctx.fillStyle = '#fbbf24';
-      this.ctx.shadowColor = '#fbbf24';
-      this.ctx.shadowBlur = 12;
       this.ctx.fill();
 
       this.ctx.restore();
@@ -1766,8 +1676,6 @@ class GameEngine {
     this.ctx.lineTo(edgeX, edgeY);
     this.ctx.lineWidth = 6;
     this.ctx.strokeStyle = '#c084fc';
-    this.ctx.shadowColor = '#a855f7';
-    this.ctx.shadowBlur = 16;
     this.ctx.stroke();
 
     this.ctx.beginPath();
@@ -1781,7 +1689,9 @@ class GameEngine {
   }
 
   renderParticles() {
-    for (const p of this.particles) {
+    // Ultra-fast Batch Rendering without heavy shadowBlur calls
+    for (let i = 0; i < this.particles.length; i++) {
+      const p = this.particles[i];
       this.ctx.beginPath();
       this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       this.ctx.fillStyle = p.color;
@@ -1790,7 +1700,8 @@ class GameEngine {
     }
     this.ctx.globalAlpha = 1;
 
-    for (const t of this.player.trail) {
+    for (let i = 0; i < this.player.trail.length; i++) {
+      const t = this.player.trail[i];
       this.ctx.beginPath();
       this.ctx.arc(t.x, t.y, 4, 0, Math.PI * 2);
       this.ctx.fillStyle = this.selectedChar.trailColor;
@@ -1819,8 +1730,6 @@ class GameEngine {
     }
 
     this.ctx.fillStyle = this.activePowerUpType === 'star_invincible' ? '#f43f5e' : (this.activePowerUpType === 'hyper_speed' ? '#eab308' : this.selectedChar.color);
-    this.ctx.shadowColor = this.selectedChar.color;
-    this.ctx.shadowBlur = 18;
 
     this.ctx.beginPath();
     this.ctx.roundRect(-w / 2, -h, w, h, 6);
@@ -1844,8 +1753,6 @@ class GameEngine {
         this.ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
         this.ctx.lineWidth = 3 - s * 0.5;
         this.ctx.strokeStyle = s === 0 ? '#f43f5e' : (s === 1 ? '#fb7185' : '#fda4af');
-        this.ctx.shadowColor = '#f43f5e';
-        this.ctx.shadowBlur = 16 + s * 6;
         this.ctx.stroke();
 
         // Render Orbiting Barrier Orbs on Outer Shields!
@@ -1857,8 +1764,6 @@ class GameEngine {
             const ny = Math.sin(nodeAngle) * ringRadius;
 
             this.ctx.fillStyle = '#ffffff';
-            this.ctx.shadowColor = '#f43f5e';
-            this.ctx.shadowBlur = 12;
             this.ctx.beginPath();
             this.ctx.arc(nx, ny, 3.5, 0, Math.PI * 2);
             this.ctx.fill();
@@ -1874,13 +1779,10 @@ class GameEngine {
       this.ctx.arc(0, -h / 2, w * 1.25, 0, Math.PI * 2);
       this.ctx.lineWidth = 2;
       this.ctx.strokeStyle = '#06b6d4';
-      this.ctx.shadowColor = '#06b6d4';
-      this.ctx.shadowBlur = 10;
       this.ctx.stroke();
     }
 
     this.ctx.fillStyle = '#0f172a';
-    this.ctx.shadowBlur = 0;
     const visorX = this.player.facing === 1 ? 2 : -8;
     this.ctx.fillRect(visorX, -h + 6, 8, 5);
 
@@ -1898,8 +1800,8 @@ class GameEngine {
       const deltaMs = timestamp - this.lastTimestamp;
       this.lastTimestamp = timestamp;
 
-      // Cap delta to prevent huge jumps when unfocusing tabs or lag spikes
-      const cappedDelta = Math.min(Math.max(0, deltaMs || 0), 100);
+      // Smooth delta normalization capped between 10ms (100fps) and 33ms (30fps)
+      const cappedDelta = Math.min(Math.max(10, deltaMs || 16.667), 33.333);
       const dtFactor = cappedDelta / 16.667;
 
       this.update(dtFactor);
