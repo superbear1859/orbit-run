@@ -1,4 +1,4 @@
-// Web Audio API Synthesizer (Zero External Assets)
+// Web Audio API Synthesizer (Zero External Assets, 100% Fail-Safe)
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -9,17 +9,23 @@ class SoundSystem {
   }
 
   init() {
-    if (this.ctx) return;
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (AudioContext) {
-      this.ctx = new AudioContext();
+    try {
+      if (this.ctx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        this.ctx = new AudioContext();
+      }
+    } catch (e) {
+      console.warn("AudioContext init failed:", e);
     }
   }
 
   playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.1) {
     if (this.isMuted || !this.ctx) return;
     try {
-      if (this.ctx.state === 'suspended') this.ctx.resume();
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
 
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -75,28 +81,33 @@ class SoundSystem {
       this.voidHumGain.connect(this.ctx.destination);
 
       this.voidHumOsc.start();
-    } catch (e) {}
+    } catch (e) {
+      this.voidHumOsc = null;
+      this.voidHumGain = null;
+    }
   }
 
   updateVoidProximity(degDiff) {
     if (!this.ctx || this.isMuted) return;
 
-    // Throttle audio parameter updates to avoid CPU overhead
-    if (Math.abs(degDiff - this.lastVoidDeg) < 2) return;
-    this.lastVoidDeg = degDiff;
+    try {
+      if (Math.abs(degDiff - this.lastVoidDeg) < 2) return;
+      this.lastVoidDeg = degDiff;
 
-    if (!this.voidHumOsc) {
-      this.startVoidHum();
-    }
+      if (!this.voidHumOsc) {
+        this.startVoidHum();
+      }
 
-    if (this.voidHumGain && this.voidHumOsc) {
-      const urgency = Math.max(0, 1 - (degDiff / 90));
-      const targetGain = urgency * 0.12;
-      const targetFreq = 55 + (urgency * 90);
+      if (this.voidHumGain && this.voidHumOsc && Number.isFinite(degDiff)) {
+        const urgency = Math.max(0, Math.min(1, 1 - (degDiff / 90)));
+        const targetGain = urgency * 0.12;
+        const targetFreq = 55 + (urgency * 90);
 
-      this.voidHumGain.gain.setTargetAtTime(targetGain, this.ctx.currentTime, 0.1);
-      this.voidHumOsc.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.1);
-    }
+        const now = this.ctx.currentTime;
+        this.voidHumGain.gain.setTargetAtTime(targetGain, now, 0.1);
+        this.voidHumOsc.frequency.setTargetAtTime(targetFreq, now, 0.1);
+      }
+    } catch (e) {}
   }
 
   stopVoidHum() {

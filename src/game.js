@@ -1,5 +1,5 @@
 import { sounds } from './audio.js';
-import { PLANET_RADIUS, getLapData } from './levels.js';
+import { PLANET_RADIUS, getLapData, generateRandomPowerUps } from './levels.js';
 import {
   CHARACTERS,
   loadPurchasedCharacters,
@@ -1058,15 +1058,16 @@ class GameEngine {
 
     this.checkCharacterUnlocksByDistance();
 
-    // Safe Non-blocking Lap Wrapping
-    if (this.player.angle >= Math.PI * 1.5) {
-      const lapsCompleted = Math.max(1, Math.floor((this.player.angle - (-Math.PI * 0.5)) / (Math.PI * 2)));
-      this.player.angle -= lapsCompleted * (Math.PI * 2);
-      for (let i = 0; i < Math.min(lapsCompleted, 3); i++) {
-        this.advanceLap();
-      }
-    } else if (this.player.angle < -Math.PI * 0.5) {
-      this.player.angle = -Math.PI * 0.5 + (((this.player.angle + Math.PI * 0.5) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    // Standard Linear Angle Wrapping (Rock-solid, no complex modulo overshoots)
+    const TWO_PI = Math.PI * 2;
+    const MIN_ANGLE = -Math.PI * 0.5;
+    const MAX_ANGLE = Math.PI * 1.5;
+
+    if (this.player.angle >= MAX_ANGLE) {
+      this.player.angle -= TWO_PI;
+      this.advanceLap();
+    } else if (this.player.angle < MIN_ANGLE) {
+      this.player.angle += TWO_PI;
     }
 
     if (this.player.jumpBufferTimer > 0) {
@@ -1343,9 +1344,9 @@ class GameEngine {
     if (this.currentLapData.enemies) {
       this.currentLapData.enemies.forEach(e => e.destroyed = false);
     }
-    if (this.currentLapData.powerUps) {
-      this.currentLapData.powerUps.forEach(p => p.collected = false);
-    }
+    // Generate fresh randomized power-ups for the new lap!
+    this.currentLapData.powerUps = generateRandomPowerUps(this.currentLapData);
+
     if (this.selectedChar.stats.hasShield) {
       this.shieldCharges = this.selectedChar.stats.shieldMaxPerLap || 1;
     }

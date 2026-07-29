@@ -40,10 +40,6 @@ export const LAPS = [
       { id: 'drone_1_1', type: 'shadow_drone', minAngle: 40, maxAngle: 75, currentAngle: 40, radiusOffset: 95, speed: 0.2, dir: 1 },
       { id: 'drone_1_2', type: 'shadow_drone', minAngle: 170, maxAngle: 200, currentAngle: 170, radiusOffset: 85, speed: 0.25, dir: 1 },
       { id: 'mine_1_1', type: 'plasma_mine', angle: 260, radiusOffset: 165 }
-    ],
-    powerUps: [
-      { id: 'p_1_1', type: 'hyper_speed', angle: 105, radiusOffset: 95, durationMs: 6000 },
-      { id: 'p_1_2', type: 'star_invincible', angle: 200, radiusOffset: 105, durationMs: 6000 }
     ]
   },
 
@@ -86,10 +82,6 @@ export const LAPS = [
       { id: 'drone_2_2', type: 'shadow_drone', minAngle: 110, maxAngle: 140, currentAngle: 110, radiusOffset: 75, speed: 0.28, dir: 1 },
       { id: 'mine_2_1', type: 'plasma_mine', angle: 165, radiusOffset: 185 },
       { id: 'drone_2_3', type: 'shadow_drone', minAngle: 220, maxAngle: 250, currentAngle: 220, radiusOffset: 90, speed: 0.25, dir: 1 }
-    ],
-    powerUps: [
-      { id: 'p_2_1', type: 'super_magnet', angle: 85, radiusOffset: 130, durationMs: 6000 },
-      { id: 'p_2_2', type: 'star_invincible', angle: 190, radiusOffset: 125, durationMs: 6000 }
     ]
   },
 
@@ -132,10 +124,6 @@ export const LAPS = [
       { id: 'drone_3_2', type: 'shadow_drone', minAngle: 170, maxAngle: 195, currentAngle: 170, radiusOffset: 140, speed: 0.32, dir: 1 },
       { id: 'mine_3_2', type: 'plasma_mine', angle: 245, radiusOffset: 210 },
       { id: 'drone_3_3', type: 'shadow_drone', minAngle: 295, maxAngle: 320, currentAngle: 295, radiusOffset: 90, speed: 0.28, dir: 1 }
-    ],
-    powerUps: [
-      { id: 'p_3_1', type: 'hyper_speed', angle: 100, radiusOffset: 95, durationMs: 6000 },
-      { id: 'p_3_2', type: 'super_magnet', angle: 220, radiusOffset: 175, durationMs: 6000 }
     ]
   },
 
@@ -183,10 +171,6 @@ export const LAPS = [
       { id: 'drone_4_2', type: 'shadow_drone', minAngle: 145, maxAngle: 170, currentAngle: 145, radiusOffset: 160, speed: 0.35, dir: 1 },
       { id: 'mine_4_2', type: 'plasma_mine', angle: 225, radiusOffset: 160 },
       { id: 'drone_4_3', type: 'shadow_drone', minAngle: 265, maxAngle: 290, currentAngle: 265, radiusOffset: 165, speed: 0.35, dir: 1 }
-    ],
-    powerUps: [
-      { id: 'p_4_1', type: 'star_invincible', angle: 110, radiusOffset: 180, durationMs: 6000 },
-      { id: 'p_4_2', type: 'hyper_speed', angle: 230, radiusOffset: 175, durationMs: 6000 }
     ]
   },
 
@@ -237,25 +221,57 @@ export const LAPS = [
       { id: 'mine_5_2', type: 'plasma_mine', angle: 200, radiusOffset: 175 },
       { id: 'drone_5_3', type: 'shadow_drone', minAngle: 240, maxAngle: 265, currentAngle: 240, radiusOffset: 180, speed: 0.4, dir: 1 },
       { id: 'mine_5_3', type: 'plasma_mine', angle: 310, radiusOffset: 175 }
-    ],
-    powerUps: [
-      { id: 'p_5_1', type: 'star_invincible', angle: 78, radiusOffset: 125, durationMs: 6000 },
-      { id: 'p_5_2', type: 'hyper_speed', angle: 186, radiusOffset: 240, durationMs: 6000 }
     ]
   }
 ];
 
+export function generateRandomPowerUps(lapData) {
+  if (!lapData.platforms || lapData.platforms.length === 0) return [];
+
+  const types = ['hyper_speed', 'star_invincible', 'super_magnet'];
+  const powerUps = [];
+  const numPowerUps = Math.floor(Math.random() * 2) + 2; // 2 or 3 randomized power-ups
+
+  const availablePlats = [...lapData.platforms];
+  for (let i = 0; i < numPowerUps && availablePlats.length > 0; i++) {
+    const randomIndex = Math.floor(Math.random() * availablePlats.length);
+    const plat = availablePlats.splice(randomIndex, 1)[0];
+
+    const span = Math.max(2, plat.endAngle - plat.startAngle - 4);
+    const randomAngle = plat.startAngle + 2 + Math.random() * span;
+    const randomType = types[Math.floor(Math.random() * types.length)];
+
+    powerUps.push({
+      id: `p_rand_${Date.now()}_${i}_${Math.random()}`,
+      type: randomType,
+      angle: Math.round(randomAngle),
+      radiusOffset: plat.radiusOffset + 35,
+      durationMs: 6000,
+      collected: false
+    });
+  }
+
+  return powerUps;
+}
+
 export function getLapData(lapIndex) {
   const safeIndex = Math.max(0, Math.floor(lapIndex || 0));
+  let lapData;
+
   if (safeIndex < LAPS.length) {
-    return JSON.parse(JSON.stringify(LAPS[safeIndex]));
+    lapData = JSON.parse(JSON.stringify(LAPS[safeIndex]));
+  } else {
+    const base = LAPS[LAPS.length - 1];
+    const copy = JSON.parse(JSON.stringify(base));
+    lapData = {
+      ...copy,
+      lapNumber: safeIndex + 1,
+      name: `Spike Trial Lap ${safeIndex + 1}`,
+      bgHue: (base.bgHue + (safeIndex - 4) * 40) % 360
+    };
   }
-  const base = LAPS[LAPS.length - 1];
-  const copy = JSON.parse(JSON.stringify(base));
-  return {
-    ...copy,
-    lapNumber: safeIndex + 1,
-    name: `Spike Trial Lap ${safeIndex + 1}`,
-    bgHue: (base.bgHue + (safeIndex - 4) * 40) % 360
-  };
+
+  // Generate dynamic randomized 6-second power-ups every lap!
+  lapData.powerUps = generateRandomPowerUps(lapData);
+  return lapData;
 }
