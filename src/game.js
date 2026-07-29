@@ -46,6 +46,10 @@ class GameEngine {
     // Frame Counter for Audio Parameter Throttling
     this.frameCount = 0;
 
+    // Game Toggles State (Persistent)
+    this.enableEnemies = localStorage.getItem('orbit_run_enable_enemies') !== 'false';
+    this.enablePowerUps = localStorage.getItem('orbit_run_enable_powerups') !== 'false';
+
     // Character State, Crystal Bank & Persistence
     this.purchasedCharIds = loadPurchasedCharacters();
     this.selectedCharId = loadSelectedCharacter();
@@ -81,7 +85,7 @@ class GameEngine {
     // State Variables
     this.state = 'START';
     this.currentLapIndex = 0;
-    this.currentLapData = getLapData(0);
+    this.currentLapData = getLapData(0, this.enablePowerUps, this.enableEnemies);
 
     const START_ANGLE = -Math.PI / 2;
     const START_RADIUS = PLANET_RADIUS + 50;
@@ -146,6 +150,7 @@ class GameEngine {
       pauseBtn: document.getElementById('pauseBtn'),
       charRosterBtn: document.getElementById('charRosterBtn'),
       guideBookBtn: document.getElementById('guideBookBtn'),
+      settingsBtn: document.getElementById('settingsBtn'),
       startGuideBtn: document.getElementById('startGuideBtn'),
       deviceSelectBtn: document.getElementById('deviceSelectBtn'),
       touchControls: document.getElementById('touchControls'),
@@ -162,7 +167,9 @@ class GameEngine {
       pauseOverlay: document.getElementById('pauseOverlay'),
       charModalOverlay: document.getElementById('charModalOverlay'),
       guideModalOverlay: document.getElementById('guideModalOverlay'),
+      settingsModalOverlay: document.getElementById('settingsModalOverlay'),
       closeGuideBtn: document.getElementById('closeGuideBtn'),
+      closeSettingsBtn: document.getElementById('closeSettingsBtn'),
       countdownOverlay: document.getElementById('countdownOverlay'),
       countdownNumber: document.getElementById('countdownNumber'),
       startBtn: document.getElementById('startBtn'),
@@ -193,13 +200,21 @@ class GameEngine {
       crystalBankDisplay: document.getElementById('crystalBankDisplay'),
       unlockToast: document.getElementById('unlockToast'),
       toastCharName: document.getElementById('toastCharName'),
-      toastCharAbility: document.getElementById('toastCharAbility')
+      toastCharAbility: document.getElementById('toastCharAbility'),
+      // Toggles DOM Buttons
+      startToggleEnemies: document.getElementById('startToggleEnemies'),
+      startTogglePowerUps: document.getElementById('startTogglePowerUps'),
+      pauseToggleEnemies: document.getElementById('pauseToggleEnemies'),
+      pauseTogglePowerUps: document.getElementById('pauseTogglePowerUps'),
+      settingsToggleEnemies: document.getElementById('settingsToggleEnemies'),
+      settingsTogglePowerUps: document.getElementById('settingsTogglePowerUps')
     };
 
     this.initEventListeners();
     this.initTouchControls();
     this.initGuideTabs();
     this.updateActiveCharacterDisplay();
+    this.updateToggleUI();
 
     // ALWAYS show device selection prompt on initial load!
     this.dom.deviceOverlay.classList.remove('hidden');
@@ -225,6 +240,56 @@ class GameEngine {
 
     if (showStartOverlay && this.state === 'START') {
       this.dom.startOverlay.classList.remove('hidden');
+    }
+  }
+
+  toggleEnemies() {
+    this.enableEnemies = !this.enableEnemies;
+    localStorage.setItem('orbit_run_enable_enemies', this.enableEnemies ? 'true' : 'false');
+    this.updateToggleUI();
+
+    // Update current lap enemies live!
+    if (!this.enableEnemies && this.currentLapData) {
+      this.currentLapData.enemies = [];
+    }
+  }
+
+  togglePowerUps() {
+    this.enablePowerUps = !this.enablePowerUps;
+    localStorage.setItem('orbit_run_enable_powerups', this.enablePowerUps ? 'true' : 'false');
+    this.updateToggleUI();
+
+    // Update current lap powerups live!
+    if (!this.enablePowerUps && this.currentLapData) {
+      this.currentLapData.powerUps = [];
+    }
+  }
+
+  updateToggleUI() {
+    const updateBtn = (btn, enabled) => {
+      if (!btn) return;
+      btn.textContent = enabled ? "ENABLED" : "DISABLED";
+      if (enabled) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    };
+
+    updateBtn(this.dom.startToggleEnemies, this.enableEnemies);
+    updateBtn(this.dom.startTogglePowerUps, this.enablePowerUps);
+    updateBtn(this.dom.pauseToggleEnemies, this.enableEnemies);
+    updateBtn(this.dom.pauseTogglePowerUps, this.enablePowerUps);
+    updateBtn(this.dom.settingsToggleEnemies, this.enableEnemies);
+    updateBtn(this.dom.settingsTogglePowerUps, this.enablePowerUps);
+  }
+
+  toggleSettingsModal() {
+    if (this.dom.settingsModalOverlay.classList.contains('hidden')) {
+      this.updateToggleUI();
+      this.dom.settingsModalOverlay.classList.remove('hidden');
+    } else {
+      this.dom.settingsModalOverlay.classList.add('hidden');
     }
   }
 
@@ -445,6 +510,8 @@ class GameEngine {
     this.dom.pauseBtn.addEventListener('click', () => this.togglePause());
     this.dom.charRosterBtn.addEventListener('click', () => this.toggleRosterModal());
     this.dom.guideBookBtn.addEventListener('click', () => this.toggleGuideModal());
+    this.dom.settingsBtn.addEventListener('click', () => this.toggleSettingsModal());
+    this.dom.closeSettingsBtn.addEventListener('click', () => this.toggleSettingsModal());
     if (this.dom.startGuideBtn) {
       this.dom.startGuideBtn.addEventListener('click', () => this.toggleGuideModal());
     }
@@ -453,6 +520,18 @@ class GameEngine {
     this.dom.deathRosterBtn.addEventListener('click', () => this.toggleRosterModal());
     this.dom.closeRosterBtn.addEventListener('click', () => this.toggleRosterModal());
     this.dom.resetCharsBtn.addEventListener('click', () => this.resetCharacters());
+
+    // Toggle button listeners
+    const bindToggle = (btn, action) => {
+      if (btn) btn.addEventListener('click', () => action());
+    };
+
+    bindToggle(this.dom.startToggleEnemies, () => this.toggleEnemies());
+    bindToggle(this.dom.startTogglePowerUps, () => this.togglePowerUps());
+    bindToggle(this.dom.pauseToggleEnemies, () => this.toggleEnemies());
+    bindToggle(this.dom.pauseTogglePowerUps, () => this.togglePowerUps());
+    bindToggle(this.dom.settingsToggleEnemies, () => this.toggleEnemies());
+    bindToggle(this.dom.settingsTogglePowerUps, () => this.togglePowerUps());
   }
 
   toggleMute() {
@@ -464,6 +543,7 @@ class GameEngine {
     if (this.state === 'RUNNING') {
       this.state = 'PAUSED';
       sounds.stopVoidHum();
+      this.updateToggleUI();
       this.dom.pauseOverlay.classList.remove('hidden');
     } else if (this.state === 'PAUSED') {
       this.state = 'RUNNING';
@@ -734,6 +814,7 @@ class GameEngine {
     this.dom.gameOverOverlay.classList.add('hidden');
     this.dom.charModalOverlay.classList.add('hidden');
     this.dom.guideModalOverlay.classList.add('hidden');
+    this.dom.settingsModalOverlay.classList.add('hidden');
     this.dom.pauseOverlay.classList.add('hidden');
 
     this.dom.countdownOverlay.classList.remove('hidden');
@@ -779,7 +860,7 @@ class GameEngine {
 
   resetState() {
     this.currentLapIndex = 0;
-    this.currentLapData = getLapData(0);
+    this.currentLapData = getLapData(0, this.enablePowerUps, this.enableEnemies);
     this.crystalsCollected = 0;
     this.totalDistanceMeters = 0;
     this.elapsedTime = 0;
@@ -1122,8 +1203,8 @@ class GameEngine {
       this.void.angle = this.player.angle - (Math.PI * 0.5);
     }
 
-    // 4. Update Enemy Movements
-    if (this.currentLapData.enemies) {
+    // 4. Update Enemy Movements (If Enemies Enabled)
+    if (this.enableEnemies && this.currentLapData.enemies) {
       for (const enemy of this.currentLapData.enemies) {
         if (enemy.destroyed) continue;
         if (enemy.type === 'shadow_drone') {
@@ -1141,9 +1222,9 @@ class GameEngine {
 
     // 5. Collision Detection
     this.checkSpikeCollisions(playerDeg);
-    this.checkEnemyCollisions(playerDeg);
+    if (this.enableEnemies) this.checkEnemyCollisions(playerDeg);
     this.checkCrystalCollisions(playerDeg);
-    this.checkPowerUpCollisions(playerDeg);
+    if (this.enablePowerUps) this.checkPowerUpCollisions(playerDeg);
 
     // 6. Fast Array Particle Filter
     for (let i = this.particles.length - 1; i >= 0; i--) {
@@ -1169,7 +1250,7 @@ class GameEngine {
   }
 
   checkPowerUpCollisions(playerDeg) {
-    if (!this.currentLapData.powerUps) return;
+    if (!this.enablePowerUps || !this.currentLapData.powerUps) return;
 
     for (const pUp of this.currentLapData.powerUps) {
       if (pUp.collected) continue;
@@ -1201,7 +1282,7 @@ class GameEngine {
   }
 
   checkEnemyCollisions(playerDeg) {
-    if (!this.currentLapData.enemies) return;
+    if (!this.enableEnemies || !this.currentLapData.enemies) return;
 
     const pRadius = this.player.radius;
 
@@ -1298,12 +1379,9 @@ class GameEngine {
 
   advanceLap() {
     this.currentLapIndex++;
-    this.currentLapData = getLapData(this.currentLapIndex);
+    this.currentLapData = getLapData(this.currentLapIndex, this.enablePowerUps, this.enableEnemies);
     if (this.currentLapData.crystals) {
       this.currentLapData.crystals.forEach(c => c.collected = false);
-    }
-    if (this.currentLapData.enemies) {
-      this.currentLapData.enemies.forEach(e => e.destroyed = false);
     }
 
     if (this.selectedChar.stats.hasShield) {
@@ -1416,11 +1494,11 @@ class GameEngine {
     // 5. Render Spikes & Hazards
     this.renderSpikes();
 
-    // 6. Render Enemies
-    this.renderEnemies();
+    // 6. Render Enemies (If Enemies Enabled)
+    if (this.enableEnemies) this.renderEnemies();
 
-    // 7. Render Collectible 6-Sec Power-Ups
-    this.renderPowerUps();
+    // 7. Render Collectible 6-Sec Power-Ups (If Power-Ups Enabled)
+    if (this.enablePowerUps) this.renderPowerUps();
 
     // 8. Render Collectible Crystals
     this.renderCrystals();
@@ -1540,7 +1618,7 @@ class GameEngine {
   }
 
   renderEnemies() {
-    if (!this.currentLapData.enemies) return;
+    if (!this.enableEnemies || !this.currentLapData.enemies) return;
 
     const time = performance.now() * 0.005;
 
@@ -1612,7 +1690,7 @@ class GameEngine {
   }
 
   renderPowerUps() {
-    if (!this.currentLapData.powerUps) return;
+    if (!this.enablePowerUps || !this.currentLapData.powerUps) return;
 
     const time = performance.now() * 0.004;
 

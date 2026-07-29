@@ -218,7 +218,7 @@ export const LAPS = [
       { id: 'drone_5_1', type: 'shadow_drone', minAngle: 20, maxAngle: 45, currentAngle: 20, radiusOffset: 175, speed: 0.4, dir: 1 },
       { id: 'mine_5_1', type: 'plasma_mine', angle: 95, radiusOffset: 180 },
       { id: 'drone_5_2', type: 'shadow_drone', minAngle: 130, maxAngle: 155, currentAngle: 130, radiusOffset: 180, speed: 0.4, dir: 1 },
-      { id: 'mine_5_2', type: 'plasma_mine', angle: 200, radiusOffset: 175 },
+      { id: 'mine_5_3', type: 'plasma_mine', angle: 200, radiusOffset: 175 },
       { id: 'drone_5_3', type: 'shadow_drone', minAngle: 240, maxAngle: 265, currentAngle: 240, radiusOffset: 180, speed: 0.4, dir: 1 },
       { id: 'mine_5_3', type: 'plasma_mine', angle: 310, radiusOffset: 175 }
     ]
@@ -228,7 +228,7 @@ export const LAPS = [
 export function generateRandomPowerUps(lapData) {
   if (!lapData.platforms || lapData.platforms.length === 0) return [];
 
-  // 40% Chance per lap to spawn ANY power-up at all (Makes them rare!)
+  // 40% Chance per lap to spawn ANY power-up at all
   if (Math.random() > 0.40) {
     return [];
   }
@@ -236,7 +236,6 @@ export function generateRandomPowerUps(lapData) {
   const types = ['hyper_speed', 'star_invincible', 'super_magnet'];
   const powerUps = [];
 
-  // Max 1 rare power-up per lap when triggered!
   const availablePlats = [...lapData.platforms];
   const randomIndex = Math.floor(Math.random() * availablePlats.length);
   const plat = availablePlats[randomIndex];
@@ -257,7 +256,7 @@ export function generateRandomPowerUps(lapData) {
   return powerUps;
 }
 
-export function getLapData(lapIndex) {
+export function getLapData(lapIndex, enablePowerUps = true, enableEnemies = true) {
   const safeIndex = Math.max(0, Math.floor(lapIndex || 0));
   let lapData;
 
@@ -274,7 +273,17 @@ export function getLapData(lapIndex) {
     };
   }
 
-  // Generate rare randomized 6-second power-ups
-  lapData.powerUps = generateRandomPowerUps(lapData);
+  // Respect Enable Power-Ups Toggle
+  if (enablePowerUps) {
+    lapData.powerUps = generateRandomPowerUps(lapData);
+  } else {
+    lapData.powerUps = [];
+  }
+
+  // Respect Enable Enemies Toggle
+  if (!enableEnemies) {
+    lapData.enemies = [];
+  }
+
   return lapData;
 }

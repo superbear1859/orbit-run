@@ -6,6 +6,7 @@
   --neon-purple: #c084fc;
   --neon-rose: #f43f5e;
   --neon-amber: #fbbf24;
+  --neon-emerald: #10b981;
   --void-color: #9333ea;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
@@ -107,7 +108,7 @@ canvas {
   color: var(--neon-cyan);
 }
 
-/* HUD Overlay Styling - High Performance Solid Translucent Backgrounds */
+/* HUD Overlay Styling */
 #hud {
   position: absolute;
   top: 16px;
@@ -345,6 +346,96 @@ canvas {
   color: var(--neon-cyan) !important;
 }
 
+/* Toggle Switch Button Styling */
+.quick-toggles-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.toggle-switch-btn {
+  background: rgba(244, 63, 94, 0.2);
+  border: 2px solid var(--neon-rose);
+  color: var(--neon-rose);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 900;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toggle-switch-btn.active {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: var(--neon-emerald);
+  color: var(--neon-emerald);
+}
+
+.toggle-switch-btn:hover {
+  transform: scale(1.04);
+}
+
+/* Settings Modal Styling */
+.settings-card {
+  width: 520px;
+}
+
+.settings-toggle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.setting-item-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.setting-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.setting-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.setting-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 /* Mobile Touch Controls Overlay - Split Layout */
 .touch-controls-container {
   position: absolute;
@@ -484,7 +575,7 @@ kbd {
   z-index: 150 !important;
 }
 
-#guideModalOverlay {
+#guideModalOverlay, #settingsModalOverlay {
   z-index: 300 !important;
 }
 
