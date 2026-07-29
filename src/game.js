@@ -1386,19 +1386,31 @@ class GameEngine {
       this.shieldCharges = this.selectedChar.stats.shieldMaxPerLap || 1;
     }
 
-    // Award +10 Gems Every Lap Completed!
-    this.crystalsCollected += 10;
-    this.crystalBank += 10;
-    saveCrystalBank(this.crystalBank);
+    // Check if character has Unlimited Jumps
+    const isUnlimitedJumps = (this.selectedChar.stats.maxJumps || 2) >= 50;
 
     sounds.playLapComplete();
 
-    // Show mid-run Lap Bonus Toast (+10 💎)
-    this.dom.toastCharName.textContent = `+10 💎 LAP ${this.currentLapIndex} BONUS!`;
-    this.dom.toastCharName.style.color = "#fbbf24";
-    this.dom.toastCharAbility.textContent = `Total Gems Saved: 💎 ${this.crystalBank}`;
-    this.dom.unlockToast.classList.remove('hidden');
-    this.toastTimerMs = 3000;
+    if (!isUnlimitedJumps) {
+      // Award +10 Gems Every Lap Completed for normal runners!
+      this.crystalsCollected += 10;
+      this.crystalBank += 10;
+      saveCrystalBank(this.crystalBank);
+
+      // Show mid-run Lap Bonus Toast (+10 💎)
+      this.dom.toastCharName.textContent = `+10 💎 LAP ${this.currentLapIndex} BONUS!`;
+      this.dom.toastCharName.style.color = "#fbbf24";
+      this.dom.toastCharAbility.textContent = `Total Gems Saved: 💎 ${this.crystalBank}`;
+      this.dom.unlockToast.classList.remove('hidden');
+      this.toastTimerMs = 3000;
+    } else {
+      // Inform user why no bonus gems were awarded for Unlimited Jumps
+      this.dom.toastCharName.textContent = `LAP ${this.currentLapIndex} COMPLETE!`;
+      this.dom.toastCharName.style.color = "#a855f7";
+      this.dom.toastCharAbility.textContent = `Unlimited Jumps Equipped: No +10 💎 bonus!`;
+      this.dom.unlockToast.classList.remove('hidden');
+      this.toastTimerMs = 3000;
+    }
   }
 
   triggerGameOver(reason) {
