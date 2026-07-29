@@ -142,6 +142,24 @@ canvas {
   min-width: 135px;
 }
 
+.powerup-card {
+  border-color: var(--neon-amber);
+  background: rgba(45, 35, 10, 0.9);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+  animation: powerupPulse 1s infinite alternate;
+}
+
+@keyframes powerupPulse {
+  0% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+  100% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.7); }
+}
+
+.powerup-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .distance-card {
   min-width: 185px;
   align-items: flex-start;
@@ -309,7 +327,7 @@ canvas {
   right: 20px;
   display: flex;
   gap: 10px;
-  z-index: 12;
+  z-index: 250 !important;
 }
 
 .icon-btn {
@@ -317,10 +335,12 @@ canvas {
   backdrop-filter: blur(8px);
   border: 1px solid var(--panel-border);
   color: var(--text-main);
-  width: 36px;
+  padding: 0 12px;
   height: 36px;
-  border-radius: 50%;
-  font-size: 1rem;
+  border-radius: 18px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -328,10 +348,23 @@ canvas {
   transition: all 0.2s ease;
 }
 
+.icon-btn.guide-highlight {
+  border-color: var(--neon-cyan);
+  background: rgba(56, 189, 248, 0.2);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+}
+
 .icon-btn:hover {
   border-color: var(--neon-cyan);
   box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
   transform: scale(1.08);
+}
+
+.accent-guide {
+  border-color: var(--neon-cyan) !important;
+  background: rgba(56, 189, 248, 0.15) !important;
+  color: var(--neon-cyan) !important;
 }
 
 /* Mobile Touch Controls Overlay - Split Layout */
@@ -480,7 +513,7 @@ kbd {
 }
 
 #guideModalOverlay {
-  z-index: 180 !important;
+  z-index: 300 !important;
 }
 
 .countdown-num {

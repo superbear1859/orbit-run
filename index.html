@@ -45,9 +45,20 @@
           </div>
         </div>
 
-        <!-- Top Right Group: Lap & Active Character Ability Badge -->
+        <!-- Top Right Group: Lap, Ability, & Active 6-Sec Power-Up Badge -->
         <div class="hud-right-group">
-          <!-- Active Ability Badge -->
+          <!-- Active 6-Sec Power-Up Badge -->
+          <div id="powerUpBadge" class="hud-card powerup-card hidden">
+            <div class="hud-label" id="powerUpLabel">POWER-UP (6s)</div>
+            <div class="powerup-status-row">
+              <span id="powerUpName" class="hud-value-sm">⚡ TURBO SPEED</span>
+              <div class="cooldown-bar">
+                <div id="powerUpFill" class="cooldown-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Character Ability Badge -->
           <div id="abilityBadge" class="hud-card ability-card">
             <div class="hud-label" id="abilityLabel">ABILITY: DOUBLE JUMP</div>
             <div class="ability-status-row">
@@ -74,7 +85,7 @@
 
       <!-- Quick Controls Badge & Sound Toggle -->
       <div id="topControls">
-        <button id="guideBookBtn" class="icon-btn" title="Guide Book (G)">📖</button>
+        <button id="guideBookBtn" class="icon-btn guide-highlight" title="Guide Book (G)">📖 GUIDE</button>
         <button id="deviceSelectBtn" class="icon-btn" title="Device Mode (Mobile/PC)">📱</button>
         <button id="charRosterBtn" class="icon-btn" title="Character Shop (C)">🛒</button>
         <button id="soundBtn" class="icon-btn" title="Toggle Mute (M)">🔊</button>
@@ -103,7 +114,7 @@
         <span><kbd>A</kbd> / <kbd>D</kbd> Move</span>
         <span><kbd>SPACE</kbd> Jump</span>
         <span id="abilityKeyHint"><kbd>SHIFT</kbd> Ability</span>
-        <span><kbd>G</kbd> Guide</span>
+        <span><kbd>G</kbd> Guide Book</span>
         <span><kbd>R</kbd> Retry</span>
       </div>
 
@@ -144,6 +155,7 @@
           <div class="btn-group-row">
             <button id="startBtn" class="btn-primary">START RUN</button>
             <button id="openRosterBtn" class="btn-secondary">🛒 CHARACTER SHOP</button>
+            <button id="startGuideBtn" class="btn-secondary accent-guide">📖 GUIDE BOOK</button>
           </div>
         </div>
       </div>
@@ -234,6 +246,7 @@
           <div class="guide-nav-tabs">
             <button class="guide-tab-btn active" data-tab="controls">🎮 CONTROLS</button>
             <button class="guide-tab-btn" data-tab="mechanics">🌀 MECHANICS</button>
+            <button class="guide-tab-btn" data-tab="powerups">⭐ 6-SEC POWER-UPS</button>
             <button class="guide-tab-btn" data-tab="hazards">👾 HAZARDS & ENEMIES</button>
             <button class="guide-tab-btn" data-tab="cheats">🔑 SECRETS & CHEATS</button>
           </div>
@@ -274,7 +287,28 @@
               </div>
             </div>
 
-            <!-- Tab 3: Hazards & Enemies -->
+            <!-- Tab 3: Power-Ups -->
+            <div id="tab-powerups" class="guide-tab-panel">
+              <div class="guide-grid">
+                <div class="hazard-card" style="border-color: var(--neon-amber);">
+                  <div class="hazard-icon">⚡</div>
+                  <div class="hazard-name" style="color: var(--neon-amber);">Turbo Speed (6s)</div>
+                  <div class="hazard-desc">Grants **+50% Movement Speed** for 6 seconds!</div>
+                </div>
+                <div class="hazard-card" style="border-color: var(--neon-rose);">
+                  <div class="hazard-icon">⭐</div>
+                  <div class="hazard-name" style="color: var(--neon-rose);">Invincibility Star (6s)</div>
+                  <div class="hazard-desc">Immunity to all spikes, hazards, and enemy drones for 6 seconds!</div>
+                </div>
+                <div class="hazard-card" style="border-color: var(--neon-cyan);">
+                  <div class="hazard-icon">🧲</div>
+                  <div class="hazard-name" style="color: var(--neon-cyan);">Super Magnet (6s)</div>
+                  <div class="hazard-desc">Attracts all crystals across the entire planet for 6 seconds!</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 4: Hazards & Enemies -->
             <div id="tab-hazards" class="guide-tab-panel">
               <div class="guide-grid">
                 <div class="hazard-card">
@@ -300,7 +334,7 @@
               </div>
             </div>
 
-            <!-- Tab 4: Secrets & Cheats -->
+            <!-- Tab 5: Secrets & Cheats -->
             <div id="tab-cheats" class="guide-tab-panel">
               <div class="secret-box">
                 <div class="secret-header">👑 UNLOCK ALL CHARACTERS CHEAT CODE</div>

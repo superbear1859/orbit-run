@@ -51,6 +51,10 @@ class GameEngine {
     this.shieldCharges = 0;
     this.shieldInvulnerableTimerMs = 0;
 
+    // 6-Second Power-Up State
+    this.powerUpTimerMs = 0;
+    this.activePowerUpType = null;
+
     // Toast Notification
     this.toastTimerMs = 0;
 
@@ -128,6 +132,7 @@ class GameEngine {
       pauseBtn: document.getElementById('pauseBtn'),
       charRosterBtn: document.getElementById('charRosterBtn'),
       guideBookBtn: document.getElementById('guideBookBtn'),
+      startGuideBtn: document.getElementById('startGuideBtn'),
       deviceSelectBtn: document.getElementById('deviceSelectBtn'),
       touchControls: document.getElementById('touchControls'),
       btnTouchLeft: document.getElementById('btnTouchLeft'),
@@ -166,6 +171,9 @@ class GameEngine {
       dashCooldownBar: document.getElementById('dashCooldownBar'),
       dashFill: document.getElementById('dashFill'),
       shieldCountBadge: document.getElementById('shieldCountBadge'),
+      powerUpBadge: document.getElementById('powerUpBadge'),
+      powerUpName: document.getElementById('powerUpName'),
+      powerUpFill: document.getElementById('powerUpFill'),
       abilityKeyHint: document.getElementById('abilityKeyHint'),
       maxDistanceDisplay: document.getElementById('maxDistanceDisplay'),
       crystalBankDisplay: document.getElementById('crystalBankDisplay'),
@@ -422,6 +430,9 @@ class GameEngine {
     this.dom.pauseBtn.addEventListener('click', () => this.togglePause());
     this.dom.charRosterBtn.addEventListener('click', () => this.toggleRosterModal());
     this.dom.guideBookBtn.addEventListener('click', () => this.toggleGuideModal());
+    if (this.dom.startGuideBtn) {
+      this.dom.startGuideBtn.addEventListener('click', () => this.toggleGuideModal());
+    }
     this.dom.closeGuideBtn.addEventListener('click', () => this.toggleGuideModal());
     this.dom.openRosterBtn.addEventListener('click', () => this.toggleRosterModal());
     this.dom.deathRosterBtn.addEventListener('click', () => this.toggleRosterModal());
@@ -796,6 +807,8 @@ class GameEngine {
     this.phaseCooldownTimerMs = 0;
     this.phaseActiveTimerMs = 0;
     this.shieldInvulnerableTimerMs = 0;
+    this.powerUpTimerMs = 0;
+    this.activePowerUpType = null;
 
     this.shieldCharges = this.selectedChar.stats.hasShield ? (this.selectedChar.stats.shieldMaxPerLap || 1) : 0;
 
@@ -899,6 +912,23 @@ class GameEngine {
     }
   }
 
+  spawnPowerUpParticles(x, y, pType) {
+    const color = pType === 'hyper_speed' ? '#eab308' : (pType === 'star_invincible' ? '#f43f5e' : '#38bdf8');
+    for (let i = 0; i < 20; i++) {
+      const angle = (Math.PI * 2 * i) / 20;
+      this.particles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * 5,
+        vy: Math.sin(angle) * 5,
+        radius: Math.random() * 4 + 2,
+        color: color,
+        life: 1,
+        decay: 0.04
+      });
+    }
+  }
+
   spawnDeathParticles(x, y) {
     for (let i = 0; i < 30; i++) {
       this.particles.push({
@@ -953,6 +983,14 @@ class GameEngine {
       }
     }
 
+    if (this.powerUpTimerMs > 0) {
+      this.powerUpTimerMs = Math.max(0, this.powerUpTimerMs - deltaMs);
+      if (this.powerUpTimerMs <= 0) {
+        this.activePowerUpType = null;
+        this.dom.powerUpBadge.classList.add('hidden');
+      }
+    }
+
     if (this.dashCooldownTimerMs > 0) {
       this.dashCooldownTimerMs = Math.max(0, this.dashCooldownTimerMs - deltaMs);
     }
@@ -969,8 +1007,13 @@ class GameEngine {
       this.shieldInvulnerableTimerMs = Math.max(0, this.shieldInvulnerableTimerMs - deltaMs);
     }
 
-    const maxSpeed = MAX_RUN_SPEED_BASE * this.selectedChar.stats.speedMult;
-    const accel = RUN_ACCEL_BASE * this.selectedChar.stats.speedMult;
+    let speedBonus = 1.0;
+    if (this.activePowerUpType === 'hyper_speed') {
+      speedBonus = 1.5; // +50% Turbo Speed for 6s!
+    }
+
+    const maxSpeed = MAX_RUN_SPEED_BASE * this.selectedChar.stats.speedMult * speedBonus;
+    const accel = RUN_ACCEL_BASE * this.selectedChar.stats.speedMult * speedBonus;
 
     // 1. Angular Movement (Delta-time normalized)
     if (this.keys.right) {
@@ -1062,7 +1105,7 @@ class GameEngine {
       }
 
       if (this.player.radius <= PLANET_RADIUS + 20) {
-        if (this.phaseActiveTimerMs > 0 || this.shieldInvulnerableTimerMs > 0) {
+        if (this.activePowerUpType === 'star_invincible' || this.phaseActiveTimerMs > 0 || this.shieldInvulnerableTimerMs > 0) {
           this.player.radialVel = JUMP_IMPULSE_BASE;
         } else if (this.shieldCharges > 0) {
           this.shieldCharges--;
@@ -1127,6 +1170,7 @@ class GameEngine {
     this.checkSpikeCollisions(playerDeg);
     this.checkEnemyCollisions(playerDeg);
     this.checkCrystalCollisions(playerDeg);
+    this.checkPowerUpCollisions(playerDeg);
 
     // 6. Fast Array Particle Filter (Delta-time normalized)
     this.particles = this.particles.filter(p => {
@@ -1145,6 +1189,38 @@ class GameEngine {
     this.updateHUD(angleDiffDeg, distanceMeters);
   }
 
+  checkPowerUpCollisions(playerDeg) {
+    if (!this.currentLapData.powerUps) return;
+
+    for (const pUp of this.currentLapData.powerUps) {
+      if (pUp.collected) continue;
+
+      const pUpRadius = PLANET_RADIUS + pUp.radiusOffset;
+      const angleDiff = Math.abs(playerDeg - pUp.angle);
+
+      if (angleDiff < 7 && Math.abs(this.player.radius - pUpRadius) < 70) {
+        pUp.collected = true;
+
+        this.powerUpTimerMs = pUp.durationMs || 6000; // 6 seconds duration!
+        this.activePowerUpType = pUp.type;
+
+        sounds.playLapComplete();
+
+        const pRad = (pUp.angle * Math.PI / 180) - Math.PI / 2;
+        const px = CENTER_X + Math.cos(pRad) * pUpRadius;
+        const py = VIEW_CENTER_Y + Math.sin(pRad) * pUpRadius;
+        this.spawnPowerUpParticles(px, py, pUp.type);
+
+        let pNameText = "⚡ TURBO SPEED";
+        if (pUp.type === 'star_invincible') pNameText = "⭐ INVINCIBLE STAR";
+        if (pUp.type === 'super_magnet') pNameText = "🧲 SUPER MAGNET";
+
+        this.dom.powerUpName.textContent = pNameText;
+        this.dom.powerUpBadge.classList.remove('hidden');
+      }
+    }
+  }
+
   checkEnemyCollisions(playerDeg) {
     if (!this.currentLapData.enemies) return;
 
@@ -1159,9 +1235,9 @@ class GameEngine {
       const angleDiff = Math.abs(playerDeg - eAngle);
 
       if (angleDiff < 5.5 && Math.abs(pRadius - eRadius) < 26) {
-        if (this.player.isDashing) {
-          // Dash destroys enemy!
-          this.destroyEnemy(enemy, "DASH SMASH!");
+        if (this.player.isDashing || this.activePowerUpType === 'star_invincible') {
+          // Destroy enemy on contact!
+          this.destroyEnemy(enemy, "SMASHED!");
           continue;
         }
 
@@ -1183,39 +1259,8 @@ class GameEngine {
     }
   }
 
-  spawnFloatParticles() {
-    const pos = this.getPlayerWorldPos();
-    this.particles.push({
-      x: pos.x + (Math.random() - 0.5) * 10,
-      y: pos.y + 10,
-      vx: (Math.random() - 0.5) * 1.5,
-      vy: Math.random() * 2 + 1,
-      radius: Math.random() * 3 + 1,
-      color: '#c084fc',
-      life: 1,
-      decay: 0.08
-    });
-  }
-
-  spawnShieldAbsorbParticles() {
-    const pos = this.getPlayerWorldPos();
-    for (let i = 0; i < 20; i++) {
-      const angle = (Math.PI * 2 * i) / 20;
-      this.particles.push({
-        x: pos.x,
-        y: pos.y,
-        vx: Math.cos(angle) * 5,
-        vy: Math.sin(angle) * 5,
-        radius: Math.random() * 3 + 2,
-        color: '#f43f5e',
-        life: 1,
-        decay: 0.04
-      });
-    }
-  }
-
   checkSpikeCollisions(playerDeg) {
-    if (this.phaseActiveTimerMs > 0 || this.shieldInvulnerableTimerMs > 0) return;
+    if (this.activePowerUpType === 'star_invincible' || this.phaseActiveTimerMs > 0 || this.shieldInvulnerableTimerMs > 0) return;
 
     const pRadius = this.player.radius;
 
@@ -1244,8 +1289,8 @@ class GameEngine {
   checkCrystalCollisions(playerDeg) {
     if (!this.currentLapData.crystals) return;
 
-    const hasMagnet = this.selectedChar.stats.hasMagnet;
-    const magnetThresholdDeg = hasMagnet ? 32 : 6;
+    const hasMagnet = this.selectedChar.stats.hasMagnet || this.activePowerUpType === 'super_magnet';
+    const magnetThresholdDeg = hasMagnet ? 45 : 6;
 
     for (let i = this.currentLapData.crystals.length - 1; i >= 0; i--) {
       const crystal = this.currentLapData.crystals[i];
@@ -1254,7 +1299,7 @@ class GameEngine {
       const crystalRadius = PLANET_RADIUS + crystal.radiusOffset;
       const angleDiff = Math.abs(playerDeg - crystal.angle);
 
-      if (angleDiff < magnetThresholdDeg && Math.abs(this.player.radius - crystalRadius) < 75) {
+      if (angleDiff < magnetThresholdDeg && Math.abs(this.player.radius - crystalRadius) < 95) {
         crystal.collected = true;
 
         this.crystalsCollected += 3;
@@ -1281,6 +1326,9 @@ class GameEngine {
     }
     if (this.currentLapData.enemies) {
       this.currentLapData.enemies.forEach(e => e.destroyed = false);
+    }
+    if (this.currentLapData.powerUps) {
+      this.currentLapData.powerUps.forEach(p => p.collected = false);
     }
     if (this.selectedChar.stats.hasShield) {
       this.shieldCharges = this.selectedChar.stats.shieldMaxPerLap || 1;
@@ -1341,6 +1389,11 @@ class GameEngine {
     this.dom.lapName.textContent = `LAP ${this.currentLapIndex + 1} - ${this.currentLapData.name}`;
     this.dom.crystalDisplay.textContent = this.crystalsCollected.toString();
 
+    if (this.powerUpTimerMs > 0) {
+      const pPct = Math.min(100, Math.max(0, (this.powerUpTimerMs / 6000) * 100));
+      this.dom.powerUpFill.style.width = `${pPct}%`;
+    }
+
     if (this.selectedChar.stats.hasDash) {
       const maxCd = this.selectedChar.stats.dashCooldownMs;
       const readyPct = Math.min(100, Math.max(0, ((maxCd - this.dashCooldownTimerMs) / maxCd) * 100));
@@ -1390,16 +1443,19 @@ class GameEngine {
     // 6. Render Enemies
     this.renderEnemies();
 
-    // 7. Render Collectible Crystals
+    // 7. Render Collectible 6-Sec Power-Ups
+    this.renderPowerUps();
+
+    // 8. Render Collectible Crystals
     this.renderCrystals();
 
-    // 8. Render Shadow Void
+    // 9. Render Shadow Void
     this.renderShadowVoid();
 
-    // 9. Render Particles & Trails
+    // 10. Render Particles & Trails
     this.renderParticles();
 
-    // 10. Render Player Character
+    // 11. Render Player Character
     this.renderPlayer();
 
     this.ctx.restore();
@@ -1596,6 +1652,44 @@ class GameEngine {
     }
   }
 
+  renderPowerUps() {
+    if (!this.currentLapData.powerUps) return;
+
+    const time = performance.now() * 0.004;
+
+    for (const pUp of this.currentLapData.powerUps) {
+      if (pUp.collected) continue;
+
+      const pRad = (pUp.angle * Math.PI / 180) - Math.PI / 2;
+      const r = PLANET_RADIUS + pUp.radiusOffset;
+      const x = CENTER_X + Math.cos(pRad) * r;
+      const y = VIEW_CENTER_Y + Math.sin(pRad) * r;
+
+      this.ctx.save();
+      this.ctx.translate(x, y);
+
+      const color = pUp.type === 'hyper_speed' ? '#eab308' : (pUp.type === 'star_invincible' ? '#f43f5e' : '#38bdf8');
+      const pulse = Math.sin(time * 4) * 3;
+
+      // Outer Glowing Ring
+      this.ctx.beginPath();
+      this.ctx.arc(0, 0, 14 + pulse, 0, Math.PI * 2);
+      this.ctx.lineWidth = 2.5;
+      this.ctx.strokeStyle = color;
+      this.ctx.shadowColor = color;
+      this.ctx.shadowBlur = 18;
+      this.ctx.stroke();
+
+      // Inner Core Icon
+      this.ctx.fillStyle = color;
+      this.ctx.beginPath();
+      this.ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      this.ctx.restore();
+    }
+  }
+
   renderCrystals() {
     if (!this.currentLapData.crystals) return;
 
@@ -1699,13 +1793,15 @@ class GameEngine {
     const w = this.player.width;
     const h = this.player.height;
 
-    if (this.phaseActiveTimerMs > 0) {
+    if (this.activePowerUpType === 'star_invincible') {
+      this.ctx.globalAlpha = 0.7 + Math.sin(performance.now() * 0.05) * 0.3;
+    } else if (this.phaseActiveTimerMs > 0) {
       this.ctx.globalAlpha = 0.5 + Math.sin(performance.now() * 0.02) * 0.3;
     } else if (this.shieldInvulnerableTimerMs > 0) {
       this.ctx.globalAlpha = 0.6 + Math.sin(performance.now() * 0.04) * 0.4;
     }
 
-    this.ctx.fillStyle = this.selectedChar.color;
+    this.ctx.fillStyle = this.activePowerUpType === 'star_invincible' ? '#f43f5e' : (this.activePowerUpType === 'hyper_speed' ? '#eab308' : this.selectedChar.color);
     this.ctx.shadowColor = this.selectedChar.color;
     this.ctx.shadowBlur = 18;
 
@@ -1756,7 +1852,7 @@ class GameEngine {
       }
     }
 
-    if (this.selectedChar.stats.hasMagnet) {
+    if (this.selectedChar.stats.hasMagnet || this.activePowerUpType === 'super_magnet') {
       this.ctx.beginPath();
       this.ctx.arc(0, -h / 2, w * 1.25, 0, Math.PI * 2);
       this.ctx.lineWidth = 2;
