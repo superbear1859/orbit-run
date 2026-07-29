@@ -27,6 +27,7 @@ const FRICTION = 0.86;
 const COYOTE_TIME_MAX = 8;
 const JUMP_BUFFER_MAX = 6;
 const MAX_PARTICLES = 25; // Optimized particle cap for 60FPS
+const FULL_LAP_DISTANCE_METERS = 190.0; // 1 full orbital lap around radius 340 planet is ~213.6m
 
 class GameEngine {
   constructor() {
@@ -117,6 +118,7 @@ class GameEngine {
 
     // Game Metrics
     this.totalDistanceMeters = 0;
+    this.lapStartDistanceMeters = 0;
     this.crystalsCollected = 0;
     this.startTime = 0;
     this.elapsedTime = 0;
@@ -861,6 +863,7 @@ class GameEngine {
     this.currentLapData = getLapData(0, this.enablePowerUps, this.enableEnemies);
     this.crystalsCollected = 0;
     this.totalDistanceMeters = 0;
+    this.lapStartDistanceMeters = 0;
     this.elapsedTime = 0;
     this.particles = [];
     this.dashCooldownTimerMs = 0;
@@ -1389,25 +1392,39 @@ class GameEngine {
     // Check if character has Unlimited Jumps
     const isUnlimitedJumps = (this.selectedChar.stats.maxJumps || 2) >= 50;
 
+    // Check distance traveled this lap (Must be a full 360° orbital loop >= FULL_LAP_DISTANCE_METERS)
+    const distanceThisLap = this.totalDistanceMeters - (this.lapStartDistanceMeters || 0);
+    const isFullLapCompleted = distanceThisLap >= FULL_LAP_DISTANCE_METERS;
+
+    // Record start distance for the next lap
+    this.lapStartDistanceMeters = this.totalDistanceMeters;
+
     sounds.playLapComplete();
 
-    if (!isUnlimitedJumps) {
-      // Award +10 Gems Every Lap Completed for normal runners!
+    if (!isUnlimitedJumps && isFullLapCompleted) {
+      // Award +10 Gems Every FULL Lap Completed for normal runners!
       this.crystalsCollected += 10;
       this.crystalBank += 10;
       saveCrystalBank(this.crystalBank);
 
       // Show mid-run Lap Bonus Toast (+10 💎)
-      this.dom.toastCharName.textContent = `+10 💎 LAP ${this.currentLapIndex} BONUS!`;
+      this.dom.toastCharName.textContent = `+10 💎 FULL LAP ${this.currentLapIndex} BONUS!`;
       this.dom.toastCharName.style.color = "#fbbf24";
       this.dom.toastCharAbility.textContent = `Total Gems Saved: 💎 ${this.crystalBank}`;
       this.dom.unlockToast.classList.remove('hidden');
       this.toastTimerMs = 3000;
-    } else {
+    } else if (isUnlimitedJumps) {
       // Inform user why no bonus gems were awarded for Unlimited Jumps
       this.dom.toastCharName.textContent = `LAP ${this.currentLapIndex} COMPLETE!`;
       this.dom.toastCharName.style.color = "#a855f7";
       this.dom.toastCharAbility.textContent = `Unlimited Jumps Equipped: No +10 💎 bonus!`;
+      this.dom.unlockToast.classList.remove('hidden');
+      this.toastTimerMs = 3000;
+    } else {
+      // Full distance was not completed
+      this.dom.toastCharName.textContent = `LAP ${this.currentLapIndex} COMPLETE!`;
+      this.dom.toastCharName.style.color = "#38bdf8";
+      this.dom.toastCharAbility.textContent = `Full 360° lap required for +10 💎 bonus!`;
       this.dom.unlockToast.classList.remove('hidden');
       this.toastTimerMs = 3000;
     }
