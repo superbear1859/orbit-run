@@ -1713,14 +1713,47 @@ class GameEngine {
     this.ctx.roundRect(-w / 2, -h, w, h, 6);
     this.ctx.fill();
 
-    if (this.shieldCharges > 0 || this.shieldInvulnerableTimerMs > 0) {
-      this.ctx.beginPath();
-      this.ctx.arc(0, -h / 2, w * 0.95, 0, Math.PI * 2);
-      this.ctx.lineWidth = 3;
-      this.ctx.strokeStyle = '#f43f5e';
-      this.ctx.shadowColor = '#f43f5e';
-      this.ctx.shadowBlur = 15;
-      this.ctx.stroke();
+    // Render Concentric Multi-Shield Energy Barriers!
+    const activeShields = this.shieldCharges;
+    if (activeShields > 0 || this.shieldInvulnerableTimerMs > 0) {
+      const shieldCount = Math.max(1, activeShields);
+      const time = performance.now() * 0.003;
+
+      for (let s = 0; s < shieldCount; s++) {
+        const ringRadius = w * (0.95 + s * 0.35);
+        const rotationAngle = (s % 2 === 0 ? 1 : -1) * time * (1 + s * 0.4);
+
+        this.ctx.save();
+        this.ctx.translate(0, -h / 2);
+        this.ctx.rotate(rotationAngle);
+
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+        this.ctx.lineWidth = 3 - s * 0.5;
+        this.ctx.strokeStyle = s === 0 ? '#f43f5e' : (s === 1 ? '#fb7185' : '#fda4af');
+        this.ctx.shadowColor = '#f43f5e';
+        this.ctx.shadowBlur = 16 + s * 6;
+        this.ctx.stroke();
+
+        // Render Orbiting Barrier Orbs on Outer Shields!
+        if (s > 0) {
+          const numNodes = s + 2;
+          for (let n = 0; n < numNodes; n++) {
+            const nodeAngle = (Math.PI * 2 * n) / numNodes;
+            const nx = Math.cos(nodeAngle) * ringRadius;
+            const ny = Math.sin(nodeAngle) * ringRadius;
+
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.shadowColor = '#f43f5e';
+            this.ctx.shadowBlur = 12;
+            this.ctx.beginPath();
+            this.ctx.arc(nx, ny, 3.5, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
+        }
+
+        this.ctx.restore();
+      }
     }
 
     if (this.selectedChar.stats.hasMagnet) {
