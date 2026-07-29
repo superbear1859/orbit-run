@@ -26,12 +26,25 @@ const FRICTION = 0.86;
 
 const COYOTE_TIME_MAX = 8;
 const JUMP_BUFFER_MAX = 6;
-const MAX_PARTICLES = 35; // Strict particle cap to prevent frame lag
+const MAX_PARTICLES = 25; // Optimized particle cap for 60FPS
 
 class GameEngine {
   constructor() {
     this.canvas = document.getElementById('gameCanvas');
     this.ctx = this.canvas.getContext('2d');
+
+    // Pre-create reusable radial void gradient once (avoids 60FPS allocation lag)
+    const outerR = PLANET_RADIUS + 900;
+    this.cachedVoidGradient = this.ctx.createRadialGradient(
+      CENTER_X, VIEW_CENTER_Y, PLANET_RADIUS - 10,
+      CENTER_X, VIEW_CENTER_Y, outerR
+    );
+    this.cachedVoidGradient.addColorStop(0, 'rgba(147, 51, 234, 0.6)');
+    this.cachedVoidGradient.addColorStop(0.3, 'rgba(88, 28, 135, 0.8)');
+    this.cachedVoidGradient.addColorStop(1, 'rgba(7, 9, 19, 0.95)');
+
+    // Frame Counter for Audio Parameter Throttling
+    this.frameCount = 0;
 
     // Character State, Crystal Bank & Persistence
     this.purchasedCharIds = loadPurchasedCharacters();
@@ -62,7 +75,7 @@ class GameEngine {
     // Countdown Interval Reference
     this.countdownInterval = null;
 
-    // Delta Time / High Refresh Rate Normalization
+    // Delta Time Normalization
     this.lastTimestamp = 0;
 
     // State Variables
@@ -231,7 +244,7 @@ class GameEngine {
 
   generateStarfield() {
     const stars = [];
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 70; i++) {
       stars.push({
         x: Math.random() * CANVAS_SIZE,
         y: Math.random() * CANVAS_SIZE,
@@ -669,16 +682,16 @@ class GameEngine {
 
   spawnDashParticles() {
     const pos = this.getPlayerWorldPos();
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 6; i++) {
       this.addParticle(pos.x, pos.y, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, Math.random() * 3 + 2, this.selectedChar.color, 0.06);
     }
   }
 
   spawnSolarFlareParticles(pushDegrees = 60) {
     const pos = this.getPlayerWorldPos();
-    const count = pushDegrees > 100 ? 16 : 10;
+    const count = pushDegrees > 100 ? 12 : 8;
     const pColor = pushDegrees > 100 ? '#10b981' : '#f97316';
-    const speed = pushDegrees > 100 ? 10 : 6;
+    const speed = pushDegrees > 100 ? 9 : 5;
 
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count;
@@ -688,15 +701,15 @@ class GameEngine {
 
   spawnPhaseParticles() {
     const pos = this.getPlayerWorldPos();
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 8; i++) {
       this.addParticle(pos.x, pos.y, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, Math.random() * 4 + 2, '#a855f7', 0.05);
     }
   }
 
   spawnEnemyExplosionParticles(x, y, enemyType) {
     const mainColor = enemyType === 'shadow_drone' ? '#c084fc' : '#f43f5e';
-    for (let i = 0; i < 12; i++) {
-      const angle = (Math.PI * 2 * i) / 12;
+    for (let i = 0; i < 10; i++) {
+      const angle = (Math.PI * 2 * i) / 10;
       const speed = Math.random() * 4 + 2;
       this.addParticle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, Math.random() * 4 + 2, Math.random() > 0.5 ? mainColor : '#fbbf24', 0.05);
     }
@@ -748,10 +761,6 @@ class GameEngine {
     const el = this.dom.countdownNumber;
     el.textContent = val;
     el.className = `countdown-num ${val === "GO!" ? 'go' : ''}`;
-
-    el.style.animation = 'none';
-    el.offsetHeight;
-    el.style.animation = null;
 
     if (typeof val === 'number') {
       sounds.playJump();
@@ -839,36 +848,49 @@ class GameEngine {
 
   spawnJumpParticles() {
     const pos = this.getPlayerWorldPos();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
       this.addParticle(pos.x, pos.y, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3, Math.random() * 3 + 2, this.selectedChar.color, 0.08);
     }
   }
 
   spawnDoubleJumpParticles() {
     const pos = this.getPlayerWorldPos();
-    for (let i = 0; i < 8; i++) {
-      const angle = (Math.PI * 2 * i) / 8;
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI * 2 * i) / 6;
       this.addParticle(pos.x, pos.y, Math.cos(angle) * 4, Math.sin(angle) * 4, Math.random() * 3 + 2, this.selectedChar.trailColor, 0.07);
     }
   }
 
   spawnCrystalParticles(x, y) {
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 5; i++) {
       this.addParticle(x, y, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, Math.random() * 3 + 2, '#fbbf24', 0.06);
     }
   }
 
   spawnPowerUpParticles(x, y, pType) {
     const color = pType === 'hyper_speed' ? '#eab308' : (pType === 'star_invincible' ? '#f43f5e' : '#38bdf8');
-    for (let i = 0; i < 10; i++) {
-      const angle = (Math.PI * 2 * i) / 10;
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 * i) / 8;
       this.addParticle(x, y, Math.cos(angle) * 4, Math.sin(angle) * 4, Math.random() * 4 + 2, color, 0.05);
     }
   }
 
   spawnDeathParticles(x, y) {
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 12; i++) {
       this.addParticle(x, y, (Math.random() - 0.5) * 7, (Math.random() - 0.5) * 7, Math.random() * 4 + 2, Math.random() > 0.5 ? '#f43f5e' : '#9333ea', 0.04);
+    }
+  }
+
+  spawnFloatParticles() {
+    const pos = this.getPlayerWorldPos();
+    this.addParticle(pos.x, pos.y + 10, (Math.random() - 0.5) * 1.5, Math.random() * 2 + 1, Math.random() * 3 + 1, '#c084fc', 0.08);
+  }
+
+  spawnShieldAbsorbParticles() {
+    const pos = this.getPlayerWorldPos();
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 * i) / 8;
+      this.addParticle(pos.x, pos.y, Math.cos(angle) * 4, Math.sin(angle) * 4, Math.random() * 3 + 2, '#f43f5e', 0.05);
     }
   }
 
@@ -903,6 +925,7 @@ class GameEngine {
   update(dtFactor = 1.0) {
     if (this.state !== 'RUNNING') return;
 
+    this.frameCount++;
     this.elapsedTime = performance.now() - this.startTime;
     const deltaMs = 16.667 * dtFactor;
 
@@ -985,7 +1008,7 @@ class GameEngine {
 
     this.checkCharacterUnlocksByDistance();
 
-    // Standard Linear Angle Wrapping (Rock-solid, no complex modulo overshoots)
+    // Standard Linear Angle Wrapping (Rock-solid)
     const TWO_PI = Math.PI * 2;
     const MIN_ANGLE = -Math.PI * 0.5;
     const MAX_ANGLE = Math.PI * 1.5;
@@ -1064,7 +1087,7 @@ class GameEngine {
     if (Math.abs(this.player.angularVel) > 0.005 || !this.player.isGrounded) {
       const pos = this.getPlayerWorldPos();
       this.player.trail.push({ x: pos.x, y: pos.y, life: 1 });
-      if (this.player.trail.length > 5) this.player.trail.shift();
+      if (this.player.trail.length > 4) this.player.trail.shift();
     }
 
     // 3. Update Void Movement (Delta-time normalized)
@@ -1082,7 +1105,10 @@ class GameEngine {
     const angleDiffDeg = (angleDiffRad * 180 / Math.PI);
     const distanceMeters = (angleDiffRad * PLANET_RADIUS / 10).toFixed(1);
 
-    sounds.updateVoidProximity(angleDiffDeg);
+    // Throttle audio parameter updates to run only once every 10 frames (~100ms)
+    if (this.frameCount % 10 === 0) {
+      sounds.updateVoidProximity(angleDiffDeg);
+    }
 
     if (angleDiffDeg >= 0 && angleDiffDeg < 5) {
       this.triggerGameOver("The Shadow Void caught you from behind!");
@@ -1129,7 +1155,7 @@ class GameEngine {
 
     for (let i = this.player.trail.length - 1; i >= 0; i--) {
       const t = this.player.trail[i];
-      t.life -= 0.15 * dtFactor;
+      t.life -= 0.2 * dtFactor;
       if (t.life <= 0) {
         this.player.trail.splice(i, 1);
       }
@@ -1400,7 +1426,7 @@ class GameEngine {
     // 9. Render Shadow Void
     this.renderShadowVoid();
 
-    // 10. Fast Render Particles & Trails (Shadows disabled for 60FPS)
+    // 10. Fast Render Particles & Trails
     this.renderParticles();
 
     // 11. Render Player Character
@@ -1658,12 +1684,8 @@ class GameEngine {
     this.ctx.arc(CENTER_X, VIEW_CENTER_Y, outerR, voidRad - Math.PI * 0.11, voidRad);
     this.ctx.closePath();
 
-    const gradient = this.ctx.createRadialGradient(CENTER_X, VIEW_CENTER_Y, PLANET_RADIUS - 10, CENTER_X, VIEW_CENTER_Y, outerR);
-    gradient.addColorStop(0, 'rgba(147, 51, 234, 0.6)');
-    gradient.addColorStop(0.3, 'rgba(88, 28, 135, 0.8)');
-    gradient.addColorStop(1, 'rgba(7, 9, 19, 0.95)');
-
-    this.ctx.fillStyle = gradient;
+    // Use cached pre-created radial gradient object for max performance
+    this.ctx.fillStyle = this.cachedVoidGradient;
     this.ctx.fill();
 
     const startX = CENTER_X + Math.cos(voidRad) * (PLANET_RADIUS - 10);
@@ -1689,7 +1711,7 @@ class GameEngine {
   }
 
   renderParticles() {
-    // Ultra-fast Batch Rendering without heavy shadowBlur calls
+    // Ultra-fast Batch Rendering
     for (let i = 0; i < this.particles.length; i++) {
       const p = this.particles[i];
       this.ctx.beginPath();
@@ -1812,6 +1834,11 @@ class GameEngine {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  new GameEngine();
-});
+// Global Singleton Safeguard (Prevents duplicate game loops on reloads)
+if (!window.__ORBIT_RUN_ENGINE__) {
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!window.__ORBIT_RUN_ENGINE__) {
+      window.__ORBIT_RUN_ENGINE__ = new GameEngine();
+    }
+  });
+}
