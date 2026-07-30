@@ -599,13 +599,26 @@ class GameEngine {
     this.dom.crystalBankDisplay.textContent = `💎 ${this.crystalBank}`;
     this.dom.maxDistanceDisplay.textContent = `${this.maxDistanceMeters.toFixed(1)} m`;
 
-    CHARACTERS.forEach(char => {
+    // Find highest purchased character index
+    let highestPurchasedIndex = 0;
+    CHARACTERS.forEach((c, idx) => {
+      if (this.purchasedCharIds.includes(c.id)) {
+        if (idx > highestPurchasedIndex) highestPurchasedIndex = idx;
+      }
+    });
+
+    // The single character allowed to be bought next in sequence
+    const nextPurchasableIndex = highestPurchasedIndex + 1;
+
+    CHARACTERS.forEach((char, idx) => {
       const isPurchased = this.purchasedCharIds.includes(char.id);
-      const isAvailableInShop = this.availableShopCharIds.includes(char.id) || (this.maxDistanceMeters >= char.unlockDistanceMeters);
+      const isNextInLine = idx === nextPurchasableIndex;
+      const isDistanceUnlocked = this.availableShopCharIds.includes(char.id) || (this.maxDistanceMeters >= char.unlockDistanceMeters);
+      const isAvailableInShop = isNextInLine && isDistanceUnlocked;
       const isSelected = char.id === this.selectedCharId;
 
       const card = document.createElement("div");
-      card.className = `char-card ${isSelected ? 'selected' : ''} ${!isAvailableInShop && !isPurchased ? 'locked' : ''}`;
+      card.className = `char-card ${isSelected ? 'selected' : ''} ${!isPurchased && !isAvailableInShop ? 'locked' : ''}`;
 
       let footerHtml = "";
       if (isPurchased) {
@@ -613,8 +626,10 @@ class GameEngine {
       } else if (isAvailableInShop) {
         const canAfford = this.crystalBank >= char.crystalCost;
         footerHtml = `<button class="btn-buy ${!canAfford ? 'disabled' : ''}">${canAfford ? `BUY (💎 ${char.crystalCost})` : `NEED 💎 ${char.crystalCost}`}</button>`;
-      } else {
+      } else if (isNextInLine && !isDistanceUnlocked) {
         footerHtml = `<span class="lock-badge">🔒 ${char.unlockCriteria}</span>`;
+      } else {
+        footerHtml = `<span class="lock-badge">🔒 Buy previous runner first</span>`;
       }
 
       card.innerHTML = `
@@ -665,21 +680,22 @@ class GameEngine {
   }
 
   checkCharacterUnlocksByDistance() {
-    let newlyAvailableChar = null;
-
-    CHARACTERS.forEach(char => {
-      if (this.availableShopCharIds.includes(char.id)) return;
-
-      if (this.totalDistanceMeters >= char.unlockDistanceMeters) {
-        this.availableShopCharIds.push(char.id);
-        newlyAvailableChar = char;
+    let highestPurchasedIndex = 0;
+    CHARACTERS.forEach((c, idx) => {
+      if (this.purchasedCharIds.includes(c.id)) {
+        if (idx > highestPurchasedIndex) highestPurchasedIndex = idx;
       }
     });
 
-    if (newlyAvailableChar) {
-      this.saveAvailableShopCharacters();
-      sounds.playLapComplete();
-      this.showToastNotification(newlyAvailableChar);
+    const nextIndex = highestPurchasedIndex + 1;
+    if (nextIndex < CHARACTERS.length) {
+      const nextChar = CHARACTERS[nextIndex];
+      if (!this.availableShopCharIds.includes(nextChar.id) && this.totalDistanceMeters >= nextChar.unlockDistanceMeters) {
+        this.availableShopCharIds.push(nextChar.id);
+        this.saveAvailableShopCharacters();
+        sounds.playLapComplete();
+        this.showToastNotification(nextChar);
+      }
     }
   }
 
