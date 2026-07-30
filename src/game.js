@@ -699,7 +699,7 @@ class GameEngine {
       this.player.dashTimerMs = 300;
       this.dashCooldownTimerMs = this.selectedChar.stats.dashCooldownMs;
 
-      this.player.angularVel = this.player.facing * (MAX_RUN_SPEED_BASE * 2.2);
+      this.player.angularVel = MAX_RUN_SPEED_BASE * 2.2;
       this.player.radialVel = 6.0;
 
       sounds.playDoubleJump();
@@ -834,6 +834,13 @@ class GameEngine {
         this.dom.countdownOverlay.classList.add('hidden');
         this.state = 'RUNNING';
         this.startTime = performance.now();
+
+        // Show starting free +10 💎 bonus notification!
+        this.dom.toastCharName.textContent = "🎁 +10 💎 FREE START BONUS!";
+        this.dom.toastCharName.style.color = "#fbbf24";
+        this.dom.toastCharAbility.textContent = "You received 10 free starting gems!";
+        this.dom.unlockToast.classList.remove('hidden');
+        this.toastTimerMs = 3000;
       }
     }, 750);
   }
@@ -861,7 +868,12 @@ class GameEngine {
   resetState() {
     this.currentLapIndex = 0;
     this.currentLapData = getLapData(0, this.enablePowerUps, this.enableEnemies);
-    this.crystalsCollected = 0;
+
+    // Free +10 Gems awarded at start of every run!
+    this.crystalsCollected = 10;
+    this.crystalBank += 10;
+    saveCrystalBank(this.crystalBank);
+
     this.totalDistanceMeters = 0;
     this.lapStartDistanceMeters = 0;
     this.elapsedTime = 0;
@@ -1057,14 +1069,14 @@ class GameEngine {
     const maxSpeed = MAX_RUN_SPEED_BASE * this.selectedChar.stats.speedMult * speedBonus;
     const accel = RUN_ACCEL_BASE * this.selectedChar.stats.speedMult * speedBonus;
 
-    // 1. Angular Movement (Delta-time normalized)
-    if (this.keys.right) {
-      this.player.angularVel += accel * dtFactor;
-      this.player.facing = 1;
-    }
+    // 1. Angular Movement (Left / Right)
     if (this.keys.left) {
       this.player.angularVel -= accel * dtFactor;
       this.player.facing = -1;
+    }
+    if (this.keys.right) {
+      this.player.angularVel += accel * dtFactor;
+      this.player.facing = 1;
     }
 
     if (!this.player.isDashing) {
@@ -1095,13 +1107,13 @@ class GameEngine {
 
     // Standard Linear Angle Wrapping (Rock-solid)
     const TWO_PI = Math.PI * 2;
-    const MIN_ANGLE = -Math.PI * 0.5;
     const MAX_ANGLE = Math.PI * 1.5;
+    const MIN_ANGLE = -Math.PI * 2.5;
 
     if (this.player.angle >= MAX_ANGLE) {
       this.player.angle -= TWO_PI;
       this.advanceLap();
-    } else if (this.player.angle < MIN_ANGLE) {
+    } else if (this.player.angle <= MIN_ANGLE) {
       this.player.angle += TWO_PI;
     }
 
@@ -1925,11 +1937,11 @@ class GameEngine {
     }
 
     this.ctx.fillStyle = '#0f172a';
-    const visorX = this.player.facing === 1 ? 2 : -8;
+    const visorX = this.player.facing * 2;
     this.ctx.fillRect(visorX, -h + 6, 8, 5);
 
     this.ctx.fillStyle = '#fbbf24';
-    this.ctx.fillRect(visorX + (this.player.facing === 1 ? 5 : 1), -h + 7, 2, 3);
+    this.ctx.fillRect(visorX + (this.player.facing > 0 ? 5 : 1), -h + 7, 2, 3);
 
     this.ctx.restore();
   }
