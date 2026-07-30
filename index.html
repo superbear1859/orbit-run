@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-COiWzz9i.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-sPV_aT8v.css">
+  <script type="module" crossorigin src="./assets/index-1DC6a0Y8.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Cc65H-j-.css">
 </head>
 <body>
   <div id="app">
@@ -87,7 +87,6 @@
       <!-- Quick Controls Badge & Sound Toggle -->
       <div id="topControls">
         <button id="guideBookBtn" class="icon-btn guide-highlight" title="Guide Book (G)">📖 GUIDE</button>
-        <button id="achievementsBtn" class="icon-btn" title="Achievements List">🏆 ACHIEVEMENTS</button>
         <button id="settingsBtn" class="icon-btn" title="Game Settings & Toggles">⚙️ SETTINGS</button>
         <button id="deviceSelectBtn" class="icon-btn" title="Device Mode (Mobile/PC)">📱</button>
         <button id="charRosterBtn" class="icon-btn" title="Character Shop (C)">🛒</button>
@@ -169,9 +168,8 @@
 
           <div class="btn-group-row">
             <button id="startBtn" class="btn-primary">START RUN</button>
-            <button id="openRosterBtn" class="btn-secondary">🛒 SHOP</button>
-            <button id="startAchievementsBtn" class="btn-secondary">🏆 TROPHIES</button>
-            <button id="startGuideBtn" class="btn-secondary accent-guide">📖 GUIDE</button>
+            <button id="openRosterBtn" class="btn-secondary">🛒 CHARACTER SHOP</button>
+            <button id="startGuideBtn" class="btn-secondary accent-guide">📖 GUIDE BOOK</button>
           </div>
         </div>
       </div>
@@ -428,31 +426,8 @@
             </div>
           </div>
 
-      <!-- Interactive Achievements List Modal -->
-      <div id="achievementsModalOverlay" class="overlay hidden">
-        <div class="overlay-card achievements-card">
-          <div class="game-title">
-            <span>TROPHY ROOM</span>
-            <span class="title-sub">ORBITAL ACHIEVEMENTS</span>
-          </div>
-
-          <div class="achievements-header-banner">
-            <div class="banner-item">
-              <span>UNLOCKED:</span>
-              <strong id="achievementProgressCount" style="color: var(--neon-amber);">0 / 12</strong>
-            </div>
-            <div class="banner-item">
-              <span>BONUS GEMS EARNED:</span>
-              <strong id="achievementGemsEarned" style="color: var(--neon-cyan);">💎 0</strong>
-            </div>
-          </div>
-
-          <div id="achievementsListGrid" class="achievements-grid">
-            <!-- Dynamically populated achievement cards -->
-          </div>
-
-          <div class="achievements-footer">
-            <button id="closeAchievementsBtn" class="btn-primary">CLOSE TROPHY ROOM</button>
+          <div class="guide-footer">
+            <button id="closeGuideBtn" class="btn-primary">GOT IT!</button>
           </div>
         </div>
       </div>
