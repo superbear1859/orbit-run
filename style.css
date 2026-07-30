@@ -21,32 +21,35 @@
   touch-action: manipulation;
 }
 
-body {
+html, body {
   background-color: var(--bg-dark);
   color: var(--text-main);
   font-family: 'Rajdhani', sans-serif;
-  min-height: 100vh;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  touch-action: manipulation;
 }
 
 #app {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
   background: radial-gradient(circle at center, #0f172a 0%, #070913 100%);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .canvas-wrapper {
   position: relative;
-  width: 900px;
-  height: 900px;
-  max-width: 98vw;
-  max-height: 98vh;
+  width: min(900px, 98vw, 98dvh);
+  height: min(900px, 98vw, 98dvh);
   aspect-ratio: 1 / 1;
   display: flex;
   justify-content: center;
@@ -1181,4 +1184,87 @@ kbd {
   display: flex;
   justify-content: flex-end;
   margin-top: 4px;
+}
+
+/* Mobile Responsive & Dynamic Viewport Optimizations */
+@media (max-width: 768px) {
+  #hudOverlay {
+    top: 6px;
+    left: 6px;
+    right: 6px;
+  }
+
+  .hud-card {
+    padding: 4px 8px !important;
+  }
+
+  .hud-value, .hud-value-accent {
+    font-size: 0.9rem !important;
+  }
+
+  .hud-label {
+    font-size: 0.55rem !important;
+  }
+
+  #topControls {
+    top: 58px;
+    right: 6px;
+    gap: 4px;
+  }
+
+  .icon-btn {
+    padding: 5px 8px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .touch-controls-container {
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    left: 8px !important;
+    right: 8px !important;
+  }
+
+  .dpad-btn {
+    width: 60px !important;
+    height: 60px !important;
+    font-size: 1.5rem !important;
+  }
+
+  .action-btn {
+    height: 56px !important;
+    padding: 0 16px !important;
+    font-size: 0.85rem !important;
+  }
+
+  .overlay-card {
+    width: 95vw !important;
+    max-height: 90dvh !important;
+    padding: 16px !important;
+    gap: 12px !important;
+  }
+
+  .game-title {
+    font-size: 1.7rem !important;
+  }
+
+  .character-grid {
+    max-height: 48dvh !important;
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-height: 600px) {
+  .canvas-wrapper {
+    width: min(900px, 94vh, 94vw);
+    height: min(900px, 94vh, 94vw);
+  }
+
+  .overlay-card {
+    max-height: 94dvh !important;
+    padding: 12px !important;
+    gap: 8px !important;
+  }
+
+  .character-grid {
+    max-height: 42dvh !important;
+  }
 }
