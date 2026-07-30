@@ -905,7 +905,8 @@ class GameEngine {
     this.shieldCharges = this.selectedChar.stats.hasShield ? (this.selectedChar.stats.shieldMaxPerLap || 1) : 0;
 
     const START_ANGLE = -Math.PI / 2;
-    const START_RADIUS = PLANET_RADIUS + 50;
+    const firstPlatOffset = (this.currentLapData.platforms && this.currentLapData.platforms[0]) ? this.currentLapData.platforms[0].radiusOffset : 50;
+    const START_RADIUS = PLANET_RADIUS + firstPlatOffset;
 
     this.player = {
       angle: START_ANGLE,
