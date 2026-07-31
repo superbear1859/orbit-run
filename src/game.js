@@ -852,11 +852,7 @@ class GameEngine {
         this.startTime = performance.now();
 
         // Show starting free +10 💎 bonus notification!
-        this.dom.toastCharName.textContent = "🎁 +10 💎 FREE START BONUS!";
-        this.dom.toastCharName.style.color = "#fbbf24";
-        this.dom.toastCharAbility.textContent = "You received 10 free starting gems!";
-        this.dom.unlockToast.classList.remove('hidden');
-        this.toastTimerMs = 3000;
+        this.showToastMessage("🎁 +10 💎 FREE START BONUS!", "You received 10 free starting gems!", "#fbbf24", 3000);
       }
     }, 600);
   }
@@ -1437,25 +1433,13 @@ class GameEngine {
       saveCrystalBank(this.crystalBank);
 
       // Show mid-run Lap Bonus Toast (+10 💎)
-      this.dom.toastCharName.textContent = `+10 💎 FULL LAP ${this.currentLapIndex} BONUS!`;
-      this.dom.toastCharName.style.color = "#fbbf24";
-      this.dom.toastCharAbility.textContent = `Total Gems Saved: 💎 ${this.crystalBank}`;
-      this.dom.unlockToast.classList.remove('hidden');
-      this.toastTimerMs = 3000;
+      this.showToastMessage(`+10 💎 FULL LAP ${this.currentLapIndex} BONUS!`, `Total Gems Saved: 💎 ${this.crystalBank}`, "#fbbf24", 3000);
     } else if (isUnlimitedJumps) {
       // Inform user why no bonus gems were awarded for Unlimited Jumps
-      this.dom.toastCharName.textContent = `LAP ${this.currentLapIndex} COMPLETE!`;
-      this.dom.toastCharName.style.color = "#a855f7";
-      this.dom.toastCharAbility.textContent = `Unlimited Jumps Equipped: No +10 💎 bonus!`;
-      this.dom.unlockToast.classList.remove('hidden');
-      this.toastTimerMs = 3000;
+      this.showToastMessage(`LAP ${this.currentLapIndex} COMPLETE!`, `Unlimited Jumps Equipped: No +10 💎 bonus!`, "#a855f7", 3000);
     } else {
       // Full distance was not completed
-      this.dom.toastCharName.textContent = `LAP ${this.currentLapIndex} COMPLETE!`;
-      this.dom.toastCharName.style.color = "#38bdf8";
-      this.dom.toastCharAbility.textContent = `Full 360° lap required for +10 💎 bonus!`;
-      this.dom.unlockToast.classList.remove('hidden');
-      this.toastTimerMs = 3000;
+      this.showToastMessage(`LAP ${this.currentLapIndex} COMPLETE!`, `Full 360° lap required for +10 💎 bonus!`, "#38bdf8", 3000);
     }
   }
 
@@ -1491,6 +1475,16 @@ class GameEngine {
     return `${minutes}:${seconds}.${millis}`;
   }
 
+  showToastMessage(title, text, color = "#fbbf24", durationMs = 3000) {
+    if (this.isMobileMode) return; // Messages hidden on mobile
+
+    this.dom.toastCharName.textContent = title;
+    this.dom.toastCharName.style.color = color;
+    this.dom.toastCharAbility.textContent = text;
+    this.dom.unlockToast.classList.remove('hidden');
+    this.toastTimerMs = durationMs;
+  }
+
   updateHUD(angleDiffDeg = 180, distanceMeters = "180.0") {
     this.dom.timerDisplay.textContent = this.formatTimer(this.elapsedTime);
 
@@ -1502,7 +1496,11 @@ class GameEngine {
 
     if (angleDiffDeg < 60) {
       this.dom.distanceBox.classList.add('warning-glow');
-      this.dom.proximityAlert.classList.remove('hidden');
+      if (!this.isMobileMode) {
+        this.dom.proximityAlert.classList.remove('hidden');
+      } else {
+        this.dom.proximityAlert.classList.add('hidden');
+      }
     } else {
       this.dom.distanceBox.classList.remove('warning-glow');
       this.dom.proximityAlert.classList.add('hidden');

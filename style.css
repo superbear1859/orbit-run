@@ -1188,6 +1188,13 @@ kbd {
 
 /* Mobile Responsive & Dynamic Viewport Optimizations */
 @media (max-width: 768px) {
+  /* Hide all message overlays & toasts on mobile */
+  .unlock-toast,
+  .proximity-alert,
+  .controls-hint {
+    display: none !important;
+  }
+
   #hudOverlay {
     top: 6px;
     left: 6px;
