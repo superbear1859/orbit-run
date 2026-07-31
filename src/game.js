@@ -1119,8 +1119,8 @@ class GameEngine {
 
     // 1. Angular Movement (Geometry Auto-Run or Manual Left/Right)
     if (this.enableGeometryMode) {
-      // Geometry Mode: Auto-run forward at constant maximum speed!
-      this.player.angularVel = maxSpeed * 1.05;
+      // Geometry Dash Mode: Auto-run forward at character's normal max running speed!
+      this.player.angularVel = maxSpeed;
       this.player.facing = 1;
     } else {
       if (this.keys.left) {
