@@ -425,7 +425,7 @@ class GameEngine {
 
     this.dom.toastCharName.textContent = "👑 CHEAT UNLOCKED!";
     this.dom.toastCharName.style.color = "#facc15";
-    this.dom.toastCharAbility.textContent = "ALL 17 CHARACTERS UNLOCKED + 9999 💎!";
+    this.dom.toastCharAbility.textContent = "ALL 25 CHARACTERS UNLOCKED + 9999 💎!";
     this.dom.unlockToast.classList.remove('hidden');
     this.toastTimerMs = 5000;
 
@@ -634,20 +634,10 @@ class GameEngine {
     this.dom.crystalBankDisplay.textContent = `💎 ${this.crystalBank}`;
     this.dom.maxDistanceDisplay.textContent = `${this.maxDistanceMeters.toFixed(1)} m`;
 
-    // Find highest purchased character index
-    let highestPurchasedIndex = 0;
-    CHARACTERS.forEach((c, idx) => {
-      if (this.purchasedCharIds.includes(c.id)) {
-        if (idx > highestPurchasedIndex) highestPurchasedIndex = idx;
-      }
-    });
-
-    // The single character allowed to be bought next in sequence
-    const nextPurchasableIndex = highestPurchasedIndex + 1;
-
     CHARACTERS.forEach((char, idx) => {
       const isPurchased = this.purchasedCharIds.includes(char.id);
-      const isNextInLine = idx === nextPurchasableIndex;
+      const isPreviousPurchased = idx === 0 || this.purchasedCharIds.includes(CHARACTERS[idx - 1].id);
+      const isNextInLine = !isPurchased && isPreviousPurchased;
       const isDistanceUnlocked = this.availableShopCharIds.includes(char.id) || (this.maxDistanceMeters >= char.unlockDistanceMeters);
       const isAvailableInShop = isNextInLine && isDistanceUnlocked;
       const isSelected = char.id === this.selectedCharId;
