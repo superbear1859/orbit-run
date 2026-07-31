@@ -50,6 +50,7 @@ class GameEngine {
     // Game Toggles State (Persistent)
     this.enableEnemies = localStorage.getItem('orbit_run_enable_enemies') !== 'false';
     this.enablePowerUps = localStorage.getItem('orbit_run_enable_powerups') !== 'false';
+    this.enableGeometryMode = localStorage.getItem('orbit_run_geometry_mode') === 'true';
 
     // Character State, Crystal Bank & Persistence
     this.purchasedCharIds = loadPurchasedCharacters();
@@ -206,10 +207,13 @@ class GameEngine {
       // Toggles DOM Buttons
       startToggleEnemies: document.getElementById('startToggleEnemies'),
       startTogglePowerUps: document.getElementById('startTogglePowerUps'),
+      startToggleGeometry: document.getElementById('startToggleGeometry'),
       pauseToggleEnemies: document.getElementById('pauseToggleEnemies'),
       pauseTogglePowerUps: document.getElementById('pauseTogglePowerUps'),
+      pauseToggleGeometry: document.getElementById('pauseToggleGeometry'),
       settingsToggleEnemies: document.getElementById('settingsToggleEnemies'),
-      settingsTogglePowerUps: document.getElementById('settingsTogglePowerUps')
+      settingsTogglePowerUps: document.getElementById('settingsTogglePowerUps'),
+      settingsToggleGeometry: document.getElementById('settingsToggleGeometry')
     };
 
     this.initEventListeners();
@@ -218,9 +222,15 @@ class GameEngine {
     this.updateActiveCharacterDisplay();
     this.updateToggleUI();
 
-    // ALWAYS show device selection prompt on initial load!
-    this.dom.deviceOverlay.classList.remove('hidden');
-    this.dom.startOverlay.classList.add('hidden');
+    const savedDevice = localStorage.getItem('orbit_run_device');
+    if (savedDevice === 'mobile') {
+      this.setDeviceMode(true, true);
+    } else {
+      this.setDeviceMode(false, true);
+    }
+
+    this.dom.startOverlay.classList.remove('hidden');
+    this.dom.deviceOverlay.classList.add('hidden');
 
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
@@ -265,6 +275,12 @@ class GameEngine {
     }
   }
 
+  toggleGeometryMode() {
+    this.enableGeometryMode = !this.enableGeometryMode;
+    localStorage.setItem('orbit_run_geometry_mode', this.enableGeometryMode ? 'true' : 'false');
+    this.updateToggleUI();
+  }
+
   updateToggleUI() {
     const updateBtn = (btn, enabled) => {
       if (!btn) return;
@@ -278,10 +294,13 @@ class GameEngine {
 
     updateBtn(this.dom.startToggleEnemies, this.enableEnemies);
     updateBtn(this.dom.startTogglePowerUps, this.enablePowerUps);
+    updateBtn(this.dom.startToggleGeometry, this.enableGeometryMode);
     updateBtn(this.dom.pauseToggleEnemies, this.enableEnemies);
     updateBtn(this.dom.pauseTogglePowerUps, this.enablePowerUps);
+    updateBtn(this.dom.pauseToggleGeometry, this.enableGeometryMode);
     updateBtn(this.dom.settingsToggleEnemies, this.enableEnemies);
     updateBtn(this.dom.settingsTogglePowerUps, this.enablePowerUps);
+    updateBtn(this.dom.settingsToggleGeometry, this.enableGeometryMode);
   }
 
   toggleSettingsModal() {
@@ -528,10 +547,26 @@ class GameEngine {
 
     bindToggle(this.dom.startToggleEnemies, () => this.toggleEnemies());
     bindToggle(this.dom.startTogglePowerUps, () => this.togglePowerUps());
+    bindToggle(this.dom.startToggleGeometry, () => this.toggleGeometryMode());
     bindToggle(this.dom.pauseToggleEnemies, () => this.toggleEnemies());
     bindToggle(this.dom.pauseTogglePowerUps, () => this.togglePowerUps());
+    bindToggle(this.dom.pauseToggleGeometry, () => this.toggleGeometryMode());
     bindToggle(this.dom.settingsToggleEnemies, () => this.toggleEnemies());
     bindToggle(this.dom.settingsTogglePowerUps, () => this.togglePowerUps());
+    bindToggle(this.dom.settingsToggleGeometry, () => this.toggleGeometryMode());
+
+    // Canvas / Screen Tap-To-Jump Listener
+    if (this.canvas) {
+      this.canvas.addEventListener('pointerdown', (e) => {
+        if (this.state === 'RUNNING') {
+          this.player.jumpBufferTimer = JUMP_BUFFER_MAX;
+          this.keys.jump = true;
+        }
+      });
+      window.addEventListener('pointerup', () => {
+        this.keys.jump = false;
+      });
+    }
   }
 
   toggleMute() {
@@ -1082,23 +1117,29 @@ class GameEngine {
     const maxSpeed = MAX_RUN_SPEED_BASE * this.selectedChar.stats.speedMult * speedBonus;
     const accel = RUN_ACCEL_BASE * this.selectedChar.stats.speedMult * speedBonus;
 
-    // 1. Angular Movement (Left / Right)
-    if (this.keys.left) {
-      this.player.angularVel -= accel * dtFactor;
-      this.player.facing = -1;
-    }
-    if (this.keys.right) {
-      this.player.angularVel += accel * dtFactor;
+    // 1. Angular Movement (Geometry Auto-Run or Manual Left/Right)
+    if (this.enableGeometryMode) {
+      // Geometry Mode: Auto-run forward at constant maximum speed!
+      this.player.angularVel = maxSpeed * 1.05;
       this.player.facing = 1;
-    }
-
-    if (!this.player.isDashing) {
-      this.player.angularVel = Math.max(-maxSpeed, Math.min(maxSpeed, this.player.angularVel || 0));
-      this.player.angularVel *= Math.pow(FRICTION, dtFactor);
     } else {
-      this.player.dashTimerMs -= deltaMs;
-      if (this.player.dashTimerMs <= 0) {
-        this.player.isDashing = false;
+      if (this.keys.left) {
+        this.player.angularVel -= accel * dtFactor;
+        this.player.facing = -1;
+      }
+      if (this.keys.right) {
+        this.player.angularVel += accel * dtFactor;
+        this.player.facing = 1;
+      }
+
+      if (!this.player.isDashing) {
+        this.player.angularVel = Math.max(-maxSpeed, Math.min(maxSpeed, this.player.angularVel || 0));
+        this.player.angularVel *= Math.pow(FRICTION, dtFactor);
+      } else {
+        this.player.dashTimerMs -= deltaMs;
+        if (this.player.dashTimerMs <= 0) {
+          this.player.isDashing = false;
+        }
       }
     }
 
