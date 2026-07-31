@@ -1119,8 +1119,8 @@ class GameEngine {
 
     // 1. Angular Movement (Geometry Auto-Run or Manual Left/Right)
     if (this.enableGeometryMode) {
-      // Geometry Dash Mode: Auto-run forward at character's normal max running speed!
-      this.player.angularVel = maxSpeed;
+      // Geometry Dash Mode: Auto-run forward using exact normal running acceleration & friction!
+      this.player.angularVel += accel * dtFactor;
       this.player.facing = 1;
     } else {
       if (this.keys.left) {
@@ -1131,15 +1131,15 @@ class GameEngine {
         this.player.angularVel += accel * dtFactor;
         this.player.facing = 1;
       }
+    }
 
-      if (!this.player.isDashing) {
-        this.player.angularVel = Math.max(-maxSpeed, Math.min(maxSpeed, this.player.angularVel || 0));
-        this.player.angularVel *= Math.pow(FRICTION, dtFactor);
-      } else {
-        this.player.dashTimerMs -= deltaMs;
-        if (this.player.dashTimerMs <= 0) {
-          this.player.isDashing = false;
-        }
+    if (!this.player.isDashing) {
+      this.player.angularVel = Math.max(-maxSpeed, Math.min(maxSpeed, this.player.angularVel || 0));
+      this.player.angularVel *= Math.pow(FRICTION, dtFactor);
+    } else {
+      this.player.dashTimerMs -= deltaMs;
+      if (this.player.dashTimerMs <= 0) {
+        this.player.isDashing = false;
       }
     }
 
