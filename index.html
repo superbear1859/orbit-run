@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-Cqx6TZ0r.js"></script>
+  <script type="module" crossorigin src="./assets/index-DtTs-ICr.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-Bq7sVPzb.css">
 </head>
 <body>
@@ -164,6 +164,10 @@
               <span class="toggle-label">⭐ 6-SEC POWER-UPS:</span>
               <button id="startTogglePowerUps" class="toggle-switch-btn active">ENABLED</button>
             </div>
+            <div class="toggle-row">
+              <span class="toggle-label">📐 GEOMETRY MODE (AUTO-RUN):</span>
+              <button id="startToggleGeometry" class="toggle-switch-btn">DISABLED</button>
+            </div>
           </div>
 
           <div class="btn-group-row">
@@ -250,6 +254,10 @@
               <span class="toggle-label">⭐ 6-SEC POWER-UPS:</span>
               <button id="pauseTogglePowerUps" class="toggle-switch-btn active">ENABLED</button>
             </div>
+            <div class="toggle-row">
+              <span class="toggle-label">📐 GEOMETRY MODE (AUTO-RUN):</span>
+              <button id="pauseToggleGeometry" class="toggle-switch-btn">DISABLED</button>
+            </div>
           </div>
 
           <button id="resumeBtn" class="btn-primary">RESUME</button>
@@ -260,7 +268,7 @@
       <div id="settingsModalOverlay" class="overlay hidden">
         <div class="overlay-card settings-card">
           <h2>⚙️ GAME SETTINGS</h2>
-          <p class="guide-subtitle">Toggle enemies or collectible power-ups on or off!</p>
+          <p class="guide-subtitle">Toggle enemies, power-ups, or Geometry Auto-Run mode on or off!</p>
 
           <div class="settings-toggle-list">
             <div class="setting-item-box">
@@ -277,6 +285,14 @@
                 <span class="setting-desc">Collectible Turbo Speed, Invincible Star, & Super Magnet items.</span>
               </div>
               <button id="settingsTogglePowerUps" class="toggle-switch-btn active">ENABLED</button>
+            </div>
+
+            <div class="setting-item-box">
+              <div class="setting-text">
+                <span class="setting-title">📐 GEOMETRY MODE (AUTO-RUN)</span>
+                <span class="setting-desc">Auto-run forward at constant speed. Tap screen or press Space to jump!</span>
+              </div>
+              <button id="settingsToggleGeometry" class="toggle-switch-btn">DISABLED</button>
             </div>
           </div>
 
