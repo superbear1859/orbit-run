@@ -823,8 +823,7 @@ class GameEngine {
     if (this.countdownInterval) clearInterval(this.countdownInterval);
 
     this.resetState();
-    this.state = 'RUNNING';
-    this.startTime = performance.now();
+    this.state = 'COUNTDOWN';
 
     this.dom.deviceOverlay.classList.add('hidden');
     this.dom.startOverlay.classList.add('hidden');
@@ -835,19 +834,31 @@ class GameEngine {
     this.dom.pauseOverlay.classList.add('hidden');
 
     this.dom.countdownOverlay.classList.remove('hidden');
-    this.updateCountdownDisplay("GO!");
-    sounds.playLapComplete();
 
-    setTimeout(() => {
-      this.dom.countdownOverlay.classList.add('hidden');
+    let count = 3;
+    this.updateCountdownDisplay(count);
+
+    this.countdownInterval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        this.updateCountdownDisplay(count);
+      } else if (count === 0) {
+        this.updateCountdownDisplay("GO!");
+      } else {
+        clearInterval(this.countdownInterval);
+        this.countdownInterval = null;
+        this.dom.countdownOverlay.classList.add('hidden');
+        this.state = 'RUNNING';
+        this.startTime = performance.now();
+
+        // Show starting free +10 💎 bonus notification!
+        this.dom.toastCharName.textContent = "🎁 +10 💎 FREE START BONUS!";
+        this.dom.toastCharName.style.color = "#fbbf24";
+        this.dom.toastCharAbility.textContent = "You received 10 free starting gems!";
+        this.dom.unlockToast.classList.remove('hidden');
+        this.toastTimerMs = 3000;
+      }
     }, 600);
-
-    // Show starting free +10 💎 bonus notification!
-    this.dom.toastCharName.textContent = "🎁 +10 💎 FREE START BONUS!";
-    this.dom.toastCharName.style.color = "#fbbf24";
-    this.dom.toastCharAbility.textContent = "You received 10 free starting gems!";
-    this.dom.unlockToast.classList.remove('hidden');
-    this.toastTimerMs = 3000;
   }
 
   updateCountdownDisplay(val) {
